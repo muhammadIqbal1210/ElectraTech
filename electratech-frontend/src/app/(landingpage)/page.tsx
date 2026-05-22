@@ -38,7 +38,7 @@ export default function LandingPage() {
                 Find Solution
               </a>
               <a href="#kontak" className="px-6 py-3 border border-slate-700 hover:border-[#48cae4] hover:text-[#48cae4] font-medium rounded-lg transition-all">
-                Let's Talk
+                Lets Talk
               </a>
             </div>
 
