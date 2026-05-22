@@ -1,1 +1,19 @@
-/node_modules
+# Kunci semua folder node_modules di semua sub-folder
+**/node_modules/
+
+# Kunci file log kesalahan
+*.log
+**/*.log
+
+# Kunci file konfigurasi rahasia (Sangat Penting untuk Backend & Blockchain)
+.env
+**/.env
+
+# Kunci folder hasil build / produksi (agar tidak memberatkan GitHub)
+**/dist/
+**/.next/
+**/build/
+
+# Kunci file sampah sistem operasi
+.DS_Store
+Thumbs.db
