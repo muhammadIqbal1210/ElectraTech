@@ -1,12 +1,38 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sprout, Thermometer, Droplets, Sun, ToggleLeft, ToggleRight, PlusCircle, ArrowUpRight, Cpu } from 'lucide-react';
+import { apiRequest } from '@/lib/api';
+
+type BatchRow = {
+  id: string;
+  variety: string;
+  phase: string;
+  health_status: string;
+};
+
+type IotLog = {
+  temperature_c: string;
+  humidity_percent: string;
+  light_lux: string;
+};
 
 export default function DashboardPenakar() {
   // State simulasi saklar aktuator IoT
   const [isPumpActive, setIsPumpActive] = useState(false);
   const [isLampActive, setIsLampActive] = useState(true);
+  const [apiBatches, setApiBatches] = useState<BatchRow[]>([]);
+  const [latestIot, setLatestIot] = useState<IotLog | null>(null);
+
+  useEffect(() => {
+    apiRequest<BatchRow[]>('/api/batches')
+      .then((response) => setApiBatches(response.data || []))
+      .catch(() => setApiBatches([]));
+
+    apiRequest<IotLog[]>('/api/iot/logs?limit=1')
+      .then((response) => setLatestIot(response.data?.[0] || null))
+      .catch(() => setLatestIot(null));
+  }, []);
 
   // Data dummy batch pemeliharaan untuk keperluan slicing UI hulu
   const activeBatches = [
@@ -14,6 +40,15 @@ export default function DashboardPenakar() {
     { id: 'BATCH-B095', varietas: 'Tomat Hibrida F1', fase: 'Pertumbuhan (H-24)', suhu: '25.8°C', status: 'Butuh Nutrisi' },
     { id: 'BATCH-B101', varietas: 'Bawang Merah Lokananta', fase: 'Karantina Aklimatisasi', suhu: '27.1°C', status: 'Optimal' },
   ];
+
+  const displayedBatches = apiBatches.length > 0
+    ? apiBatches.map((batch) => ({
+        id: batch.id,
+        varietas: batch.variety,
+        fase: batch.phase,
+        status: batch.health_status === 'SEHAT' ? 'Optimal' : batch.health_status,
+      }))
+    : activeBatches;
 
   return (
     <div className="space-y-8">
@@ -38,7 +73,7 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Suhu Ruang Semai</p>
-            <p className="text-2xl font-extrabold text-orange-400 font-mono">26.5 °C</p>
+            <p className="text-2xl font-extrabold text-orange-400 font-mono">{latestIot?.temperature_c || '26.5'} C</p>
             <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● Status Stabil</p>
           </div>
           <div className="p-3 bg-orange-500/10 rounded-xl text-orange-400"><Thermometer className="w-6 h-6" /></div>
@@ -48,7 +83,7 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelembapan Tanah</p>
-            <p className="text-2xl font-extrabold text-cyan-400 font-mono">78 %</p>
+            <p className="text-2xl font-extrabold text-cyan-400 font-mono">{latestIot?.humidity_percent || '78'} %</p>
             <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● Kandungan Air Cukup</p>
           </div>
           <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400"><Droplets className="w-6 h-6" /></div>
@@ -58,7 +93,7 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Intensitas Cahaya</p>
-            <p className="text-2xl font-extrabold text-yellow-400 font-mono">420 Lux</p>
+            <p className="text-2xl font-extrabold text-yellow-400 font-mono">{latestIot?.light_lux || '420'} Lux</p>
             <p className="text-[10px] text-amber-400 flex items-center gap-0.5">● Fotosintesis Aktif</p>
           </div>
           <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400"><Sun className="w-6 h-6" /></div>
@@ -88,7 +123,7 @@ export default function DashboardPenakar() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {activeBatches.map((batch) => (
+                {displayedBatches.map((batch) => (
                   <tr key={batch.id} className="hover:bg-slate-800/20 transition-colors">
                     <td className="py-4 px-2">
                       <p className="font-mono text-emerald-400 font-semibold">{batch.id}</p>
