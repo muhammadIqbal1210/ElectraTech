@@ -7,6 +7,7 @@ import {
   Bot,
   ClipboardList,
   Cpu,
+  Database,
   FolderPlus,
   History,
   LayoutDashboard,
@@ -14,7 +15,9 @@ import {
   MapPinned,
   PackageCheck,
   Route,
+  ShieldCheck,
   Sprout,
+  Users,
 } from 'lucide-react';
 
 const menuByRole = {
@@ -37,15 +40,25 @@ const menuByRole = {
       { name: 'Riwayat Ledger', href: '/kurir/riwayat', icon: History },
     ],
   },
+  admin: {
+    nodeLabel: 'Node: System Admin',
+    items: [
+      { name: 'Dashboard Admin', href: '/admin', icon: LayoutDashboard },
+      { name: 'Manajemen User', href: '/admin/users', icon: Users },
+      { name: 'Audit TraceChain', href: '/admin/audit', icon: ShieldCheck },
+      { name: 'Database Monitor', href: '/admin/database', icon: Database },
+    ],
+  },
 };
 
 function getCurrentRole(pathname: string) {
+  if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/kurir')) return 'kurir';
   return 'produsen';
 }
 
 function isActivePath(pathname: string, href: string) {
-  if (href === '/produsen' || href === '/kurir') {
+  if (href === '/produsen' || href === '/kurir' || href === '/admin') {
     return pathname === href;
   }
 
