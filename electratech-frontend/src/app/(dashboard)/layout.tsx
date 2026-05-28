@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Bot,
   ClipboardList,
@@ -19,6 +19,7 @@ import {
   Sprout,
   Users,
 } from 'lucide-react';
+import { clearSession, getStoredUser } from '@/lib/api';
 
 const menuByRole = {
   produsen: {
@@ -67,8 +68,15 @@ function isActivePath(pathname: string, href: string) {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const currentRole = getCurrentRole(pathname);
   const menu = menuByRole[currentRole];
+  const user = getStoredUser();
+
+  const handleLogout = () => {
+    clearSession();
+    router.push('/login');
+  };
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
@@ -115,13 +123,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
             </div>
           </div>
-          <Link
-            href="/login"
+          <button
+            type="button"
+            onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
           >
             <LogOut className="w-4 h-4" />
             Keluar Sistem
-          </Link>
+          </button>
         </div>
       </aside>
 
@@ -133,7 +142,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-xs font-semibold text-slate-400">{menu.nodeLabel}</span>
+            <span className="text-xs font-semibold text-slate-400">
+              {user ? `${user.name} - ${user.role}` : menu.nodeLabel}
+            </span>
           </div>
         </header>
 
