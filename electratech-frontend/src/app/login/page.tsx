@@ -2,25 +2,36 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, User, Sprout, Truck, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { loginUser } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState<'PRODUSEN' | 'KURIR' | 'ADMIN'>('PRODUSEN');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Skenario Simulasi Autentikasi Sementara sebelum integrasi API Backend
-    alert(`Login berhasil sebagai ${role}!`);
-    
-    if (role === 'PRODUSEN') {
-      router.push('/produsen');
-    } else if (role === 'KURIR') {
-      router.push('/kurir');
-    } else {
-      router.push('/admin');
+
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const user = await loginUser(username, password, role);
+
+      if (user.role === 'PRODUSEN') {
+        router.push('/produsen');
+      } else if (user.role === 'KURIR') {
+        router.push('/kurir');
+      } else {
+        router.push('/admin');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login gagal.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,9 +122,16 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {error && (
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-300">
+              {error}
+            </div>
+          )}
+
           {/* Tombol Submit */}
           <button
             type="submit"
+            disabled={isLoading}
             className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg mt-4 ${
               role === 'PRODUSEN'
                 ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/10'
@@ -122,7 +140,7 @@ export default function LoginPage() {
                   : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/10'
             }`}
           >
-            Masuk ke Dashboard
+            {isLoading ? 'Memverifikasi...' : 'Masuk ke Dashboard'}
           </button>
         </form>
 
