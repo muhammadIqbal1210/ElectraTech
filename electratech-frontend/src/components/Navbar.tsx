@@ -15,6 +15,7 @@ export default function Navbar() {
           <Link href="#layanan" className="hover:text-blue-400 transition">Layanan</Link>
           <Link href="#fitur" className="hover:text-blue-400 transition">Fitur Utama</Link>
           <Link href="#verifikasi" className="hover:text-blue-400 transition">Cek Produk</Link>
+          <Link href="/blog" className="hover:text-blue-400 transition">Blog</Link>
         </div>
 
         <div>
