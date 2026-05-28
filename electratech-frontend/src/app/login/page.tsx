@@ -1,11 +1,11 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, User, Sprout, Truck, ShieldAlert } from 'lucide-react';
+import { Lock, User, Sprout, Truck, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [role, setRole] = useState<'PRODUSEN' | 'KURIR'>('PRODUSEN');
+  const [role, setRole] = useState<'PRODUSEN' | 'KURIR' | 'ADMIN'>('PRODUSEN');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -17,8 +17,10 @@ export default function LoginPage() {
     
     if (role === 'PRODUSEN') {
       router.push('/produsen');
-    } else {
+    } else if (role === 'KURIR') {
       router.push('/kurir');
+    } else {
+      router.push('/admin');
     }
   };
 
@@ -37,7 +39,7 @@ export default function LoginPage() {
         </div>
 
         {/* Tab Pilihan Role */}
-        <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800/80 mb-6">
+        <div className="grid grid-cols-3 gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800/80 mb-6">
           <button
             type="button"
             onClick={() => setRole('PRODUSEN')}
@@ -59,6 +61,17 @@ export default function LoginPage() {
             }`}
           >
             <Truck className="w-4 h-4" /> Kurir Logistik
+          </button>
+          <button
+            type="button"
+            onClick={() => setRole('ADMIN')}
+            className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
+              role === 'ADMIN'
+                ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/10'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" /> Admin
           </button>
         </div>
 
@@ -104,7 +117,9 @@ export default function LoginPage() {
             className={`w-full py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg mt-4 ${
               role === 'PRODUSEN'
                 ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/10'
-                : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/10'
+                : role === 'KURIR'
+                  ? 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/10'
+                  : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/10'
             }`}
           >
             Masuk ke Dashboard
