@@ -19,7 +19,7 @@ export default function Navbar() {
 
         <div>
           <Link 
-            href="/dashboard/pabrik" 
+            href="/login" 
             className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition shadow-lg shadow-blue-600/20"
           >
             Masuk ke Sistem
