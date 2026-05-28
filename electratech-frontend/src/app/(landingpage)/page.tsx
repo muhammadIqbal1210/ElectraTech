@@ -1,5 +1,6 @@
 // src/app/page.tsx
 import Navbar from '@/components/Navbar';
+import Image from 'next/image';
 import { ShieldCheck, Cpu, Truck, Search } from 'lucide-react';
 
 export default function LandingPage() {
@@ -70,10 +71,14 @@ export default function LandingPage() {
           {/* Kolom Ilustrasi Kanan (Bentuk Kepala Cyborg Sesuai Gambar) */}
           <div className="md:col-span-5 flex justify-center md:justify-end relative select-none">
             <div className="relative w-full max-w-[420px] aspect-square rounded-full bg-gradient-to-tr from-[#0077b6]/30 to-transparent flex items-center justify-center p-8 border border-slate-800/50 shadow-2xl backdrop-blur-sm">
-              {/* Anda bisa mengganti emoji ini dengan aset gambar SVG/PNG kepala robot asli jika ada */}
-              <div className="text-[140px] md:text-[180px] animate-pulse drop-shadow-[0_0_50px_rgba(72,202,228,0.3)]">
-                👤
-              </div>
+              <Image
+                src="/logoelectra.png"
+                alt="Cyborg Head"
+                width={420}
+                height={420}
+                priority
+                className="h-full w-full object-contain"
+              />
               
               {/* Ornamen Node Jaringan Samping */}
               <div className="absolute top-10 left-10 w-3 h-3 bg-[#48cae4] rounded-full shadow-[0_0_12px_#48cae4]"></div>
