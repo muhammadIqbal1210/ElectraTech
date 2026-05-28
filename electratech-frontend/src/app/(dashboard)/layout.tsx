@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -19,7 +19,7 @@ import {
   Sprout,
   Users,
 } from 'lucide-react';
-import { clearSession, getStoredUser } from '@/lib/api';
+import { apiRequest, ApiUser, clearSession, getStoredUser, getToken, Role } from '@/lib/api';
 
 const menuByRole = {
   produsen: {
@@ -58,6 +58,18 @@ function getCurrentRole(pathname: string) {
   return 'produsen';
 }
 
+const roleHome: Record<Role, string> = {
+  ADMIN: '/admin',
+  PRODUSEN: '/produsen',
+  KURIR: '/kurir',
+};
+
+const pathRole: Record<ReturnType<typeof getCurrentRole>, Role> = {
+  admin: 'ADMIN',
+  produsen: 'PRODUSEN',
+  kurir: 'KURIR',
+};
+
 function isActivePath(pathname: string, href: string) {
   if (href === '/produsen' || href === '/kurir' || href === '/admin') {
     return pathname === href;
@@ -71,12 +83,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const currentRole = getCurrentRole(pathname);
   const menu = menuByRole[currentRole];
-  const user = getStoredUser();
+  const [user, setUser] = useState<ApiUser | null>(null);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+
+  useEffect(() => {
+    const token = getToken();
+    const storedUser = getStoredUser();
+    const expectedRole = pathRole[currentRole];
+
+    if (!token || !storedUser) {
+      clearSession();
+      router.replace('/login');
+      return;
+    }
+
+    if (storedUser.role !== expectedRole) {
+      router.replace(roleHome[storedUser.role]);
+      return;
+    }
+
+    void Promise.resolve()
+      .then(() => apiRequest<never>('/api/auth/me'))
+      .then(() => setUser(storedUser))
+      .catch(() => {
+        clearSession();
+        router.replace('/login');
+      })
+      .finally(() => setIsCheckingAccess(false));
+  }, [currentRole, router]);
 
   const handleLogout = () => {
     clearSession();
     router.push('/login');
   };
+
+  if (isCheckingAccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm font-semibold text-slate-400">
+        Memverifikasi akses...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
