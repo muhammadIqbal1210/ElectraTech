@@ -1,5 +1,17 @@
 {
+  "name": "electratech-backend",
+  "version": "0.1.0",
+  "description": "Backend API Electra Tech untuk supply chain bibit, IoT, dan tracking logistik.",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:setup": "node scripts/setup-db.js"
+  },
   "dependencies": {
-    "lucide-react": "^1.16.0"
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.21.0"
   }
 }
