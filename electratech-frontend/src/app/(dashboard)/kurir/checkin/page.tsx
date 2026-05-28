@@ -2,12 +2,46 @@
 
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2, MapPin, Send, Thermometer, Truck } from 'lucide-react';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { apiRequest } from '@/lib/api';
 
-export default function CheckInKurirPage() {
+function CheckInKurirContent() {
   const searchParams = useSearchParams();
   const resi = searchParams.get('resi') ?? 'ELC-20260528-0092';
+  const initialBatchId = searchParams.get('batch') ?? 'BATCH-B092';
   const [condition, setCondition] = useState('Aman');
+  const [receiptNumber, setReceiptNumber] = useState(resi);
+  const [batchId, setBatchId] = useState(initialBatchId);
+  const [coordinates, setCoordinates] = useState('-6.9175, 107.6191');
+  const [status, setStatus] = useState('Dalam perjalanan');
+  const [notes, setNotes] = useState('Muatan stabil, segel kontainer utuh, suhu masih dalam rentang aman.');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMessage('');
+
+    const [latitude, longitude] = coordinates.split(',').map((value) => Number(value.trim()));
+
+    try {
+      await apiRequest('/api/tracking/checkins', {
+        method: 'POST',
+        body: JSON.stringify({
+          receiptNumber,
+          batchId,
+          status,
+          latitude,
+          longitude,
+          cargoCondition: condition,
+          containerTemperatureC: 18.5,
+          notes,
+        }),
+      });
+      setMessage('Check-in berhasil dikirim ke backend.');
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Gagal mengirim check-in.');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -26,23 +60,23 @@ export default function CheckInKurirPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <form className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="space-y-1.5">
               <span className="text-xs font-semibold text-slate-400">Nomor Resi</span>
-              <input className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" defaultValue={resi} />
+              <input value={receiptNumber} onChange={(event) => setReceiptNumber(event.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" />
             </label>
             <label className="space-y-1.5">
               <span className="text-xs font-semibold text-slate-400">ID Batch</span>
-              <input className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" defaultValue="BATCH-B092" />
+              <input value={batchId} onChange={(event) => setBatchId(event.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" />
             </label>
             <label className="space-y-1.5">
               <span className="text-xs font-semibold text-slate-400">Koordinat</span>
-              <input className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" defaultValue="-6.9175, 107.6191" />
+              <input value={coordinates} onChange={(event) => setCoordinates(event.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" />
             </label>
             <label className="space-y-1.5">
               <span className="text-xs font-semibold text-slate-400">Status Perjalanan</span>
-              <select className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" defaultValue="Dalam perjalanan">
+              <select value={status} onChange={(event) => setStatus(event.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500">
                 <option>Dalam perjalanan</option>
                 <option>Tiba di hub</option>
                 <option>Diserahkan ke penerima</option>
@@ -73,13 +107,14 @@ export default function CheckInKurirPage() {
 
           <label className="block space-y-1.5">
             <span className="text-xs font-semibold text-slate-400">Catatan Kurir</span>
-            <textarea className="min-h-28 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" defaultValue="Muatan stabil, segel kontainer utuh, suhu masih dalam rentang aman." />
+            <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-28 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-purple-500" />
           </label>
 
           <button className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-purple-500">
             <Send className="h-4 w-4" />
             Kirim Check-in
           </button>
+          {message && <p className="text-sm font-semibold text-purple-300">{message}</p>}
         </form>
 
         <aside className="space-y-4">
@@ -105,5 +140,13 @@ export default function CheckInKurirPage() {
         </aside>
       </div>
     </div>
+  );
+}
+
+export default function CheckInKurirPage() {
+  return (
+    <Suspense fallback={<div className="text-sm text-slate-400">Memuat form check-in...</div>}>
+      <CheckInKurirContent />
+    </Suspense>
   );
 }
