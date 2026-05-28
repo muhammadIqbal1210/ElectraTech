@@ -8,7 +8,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#0b132b] text-white font-sans antialiased scroll-smooth selection:bg-cyan-500 selection:text-slate-900">
       <Navbar />
 
-      {/* 1. HERO SECTION (Disesuaikan Persis dengan Gambar) */}
+      {/* 1. HERO SECTION  */}
       <section id="home" className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden flex items-center min-h-[90vh]">
         {/* Ornamen Gradasi Latar Belakang */}
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-10"></div>
@@ -22,7 +22,7 @@ export default function LandingPage() {
               Electra Tech Indonesia
             </span>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15]">
+            <h1 className="text-4xl md:text-5xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]">
               Empowering the Future with <br />
               <span className="bg-gradient-to-r from-[#48cae4] to-[#0077b6] bg-clip-text text-transparent">
                 Intelligent Connectivity
@@ -68,14 +68,14 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Kolom Ilustrasi Kanan (Bentuk Kepala Cyborg Sesuai Gambar) */}
+          {/* Kolom Ilustrasi Kanan */}
           <div className="md:col-span-5 flex justify-center md:justify-end relative select-none">
-            <div className="relative w-full max-w-[420px] aspect-square rounded-full bg-gradient-to-tr from-[#0077b6]/30 to-transparent flex items-center justify-center p-8 border border-slate-800/50 shadow-2xl backdrop-blur-sm">
+            <div className="relative w-full max-w-[420px] aspect-square rounded-full flex items-center justify-center p-8">
               <Image
                 src="/logoelectra.png"
                 alt="Cyborg Head"
-                width={420}
-                height={420}
+                width={840}
+                height={840}
                 priority
                 className="h-full w-full object-contain"
               />
