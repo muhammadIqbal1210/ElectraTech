@@ -7,6 +7,12 @@ const users = [
   ['DRV-018', 'Rama Logistik', 'Kurir', 'Ditinjau'],
 ];
 
+const roleStats = [
+  { label: 'Admin', value: '5', icon: ShieldCheck, color: 'text-cyan-400' },
+  { label: 'Penakar', value: '12', icon: Sprout, color: 'text-emerald-400' },
+  { label: 'Kurir', value: '21', icon: Truck, color: 'text-purple-400' },
+];
+
 export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
@@ -25,17 +31,17 @@ export default function AdminUsersPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {[
-          ['Admin', '5', ShieldCheck, 'text-cyan-400'],
-          ['Penakar', '12', Sprout, 'text-emerald-400'],
-          ['Kurir', '21', Truck, 'text-purple-400'],
-        ].map(([label, value, Icon, color]) => (
-          <div key={label as string} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <Icon className={`h-5 w-5 ${color}`} />
-            <p className="mt-4 font-mono text-3xl font-black">{value as string}</p>
-            <p className="text-xs uppercase tracking-wider text-slate-500">{label as string}</p>
-          </div>
-        ))}
+        {roleStats.map((stat) => {
+          const Icon = stat.icon;
+
+          return (
+            <div key={stat.label} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <Icon className={`h-5 w-5 ${stat.color}`} />
+              <p className="mt-4 font-mono text-3xl font-black">{stat.value}</p>
+              <p className="text-xs uppercase tracking-wider text-slate-500">{stat.label}</p>
+            </div>
+          );
+        })}
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
