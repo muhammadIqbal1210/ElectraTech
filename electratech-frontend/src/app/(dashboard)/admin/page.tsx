@@ -4,7 +4,6 @@ import {
   Boxes,
   Cpu,
   Database,
-  PackageCheck,
   ShieldCheck,
   Truck,
   Users,
@@ -181,7 +180,7 @@ export default function AdminDashboardPage() {
               Perhatian Admin
             </h2>
             <p className="mt-3 text-xs leading-relaxed text-slate-300">
-              Ada 3 pengiriman dengan kondisi "Perlu Inspeksi". Prioritaskan verifikasi bukti foto sebelum ledger dikunci permanen.
+              Ada 3 pengiriman dengan kondisi &quot;Perlu Inspeksi&quot;. Prioritaskan verifikasi bukti foto sebelum ledger dikunci permanen.
             </p>
           </div>
 
