@@ -126,7 +126,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0">
         <div className="space-y-6">
           <Link href="/" className="block px-2 py-1">
@@ -181,7 +181,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <main className="flex-1 bg-slate-950 overflow-y-auto">
+      <main className="flex-1 h-full bg-slate-950 overflow-y-auto">
         <header className="h-16 border-b border-slate-800/60 bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-8">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
             <Route className="h-4 w-4" />
