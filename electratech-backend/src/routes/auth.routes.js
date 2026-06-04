@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('../db/pool');
+const pool = require('../config/db');
 const { asyncHandler, createError } = require('../utils/http');
 const { verifyPassword } = require('../utils/password');
 const { signToken } = require('../utils/jwt');

@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('../db/pool');
+const pool = require('../config/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { asyncHandler, createError } = require('../utils/http');
 
@@ -26,19 +26,27 @@ function mapShipment(row) {
   };
 }
 
+function getShipmentAccessClause(req, alias = 's', paramIndex = 1, includeUnassignedCourier = true) {
+  if (req.user.role === 'ADMIN') {
+    return { clause: '', params: [] };
+  }
+
+  if (req.user.role === 'PRODUSEN') {
+    return { clause: `and ${alias}.producer_id = $${paramIndex}`, params: [req.user.id] };
+  }
+
+  return {
+    clause: includeUnassignedCourier
+      ? `and (${alias}.courier_id = $${paramIndex} or ${alias}.courier_id is null)`
+      : `and ${alias}.courier_id = $${paramIndex}`,
+    params: [req.user.id],
+  };
+}
+
 router.get('/shipments', asyncHandler(async (req, res) => {
   const { status } = req.query;
   const params = [status || null];
-
-  let ownershipClause = '';
-
-  if (req.user.role === 'PRODUSEN') {
-    params.push(req.user.id);
-    ownershipClause = `and s.producer_id = $${params.length}`;
-  } else if (req.user.role === 'KURIR') {
-    params.push(req.user.id);
-    ownershipClause = `and (s.courier_id = $${params.length} or s.courier_id is null)`;
-  }
+  const access = getShipmentAccessClause(req, 's', 2);
 
   const result = await pool.query(
     `select s.id, s.receipt_number, b.public_id as batch_id, b.variety, b.generation,
@@ -50,9 +58,9 @@ router.get('/shipments', asyncHandler(async (req, res) => {
      join users producer on producer.id = s.producer_id
      left join users courier on courier.id = s.courier_id
      where ($1::text is null or s.status = $1)
-       ${ownershipClause}
+       ${access.clause}
      order by s.created_at desc`,
-    params,
+    [...params, ...access.params],
   );
 
   res.json({ ok: true, data: result.rows.map(mapShipment) });
@@ -83,6 +91,10 @@ router.get('/shipments/:receiptNumber', asyncHandler(async (req, res) => {
     throw createError(403, 'Paket ini bukan milik produsen login.');
   }
 
+  if (req.user.role === 'KURIR' && shipment.courier_id && shipment.courier_id !== req.user.id) {
+    throw createError(403, 'Paket ini sedang ditangani kurir lain.');
+  }
+
   res.json({ ok: true, data: mapShipment(shipment) });
 }));
 
@@ -95,15 +107,16 @@ router.post('/shipments', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (
 
   const result = await pool.query(
     `insert into shipments (batch_id, producer_id, destination, package_quantity, notes)
-     select b.id, $2, $3, $4, $5
+     select b.id, b.producer_id, $2, $3, $4
      from batches b
      where b.public_id = $1
+       and ($5::text = 'ADMIN' or b.producer_id = $6)
      returning id, receipt_number, destination, package_quantity, status, notes, created_at`,
-    [batchId, req.user.id, destination, packageQuantity, notes || null],
+    [batchId, destination, packageQuantity, notes || null, req.user.role, req.user.id],
   );
 
   if (!result.rows[0]) {
-    throw createError(404, 'Batch tidak ditemukan.');
+    throw createError(404, 'Batch tidak ditemukan atau bukan milik user login.');
   }
 
   res.status(201).json({ ok: true, data: result.rows[0] });
@@ -127,6 +140,7 @@ router.post('/shipments/:receiptNumber/accept', requireRole('ADMIN', 'KURIR'), a
 
 router.get('/', asyncHandler(async (req, res) => {
   const { receiptNumber } = req.query;
+  const access = getShipmentAccessClause(req, 's', 2, false);
 
   const result = await pool.query(
     `select pt.id, pt.receipt_number, b.public_id as batch_id, u.name as courier_name,
@@ -134,10 +148,12 @@ router.get('/', asyncHandler(async (req, res) => {
             pt.notes, pt.recorded_at
      from package_tracking pt
      join batches b on b.id = pt.batch_id
+     join shipments s on s.receipt_number = pt.receipt_number
      join users u on u.id = pt.courier_id
      where ($1::text is null or pt.receipt_number = $1)
+       ${access.clause}
      order by pt.recorded_at desc`,
-    [receiptNumber || null],
+    [receiptNumber || null, ...access.params],
   );
 
   res.json({ ok: true, data: result.rows });

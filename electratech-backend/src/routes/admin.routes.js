@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('../db/pool');
+const pool = require('../config/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { asyncHandler, createError } = require('../utils/http');
 const { hashPassword } = require('../utils/password');

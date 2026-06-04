@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('../db/pool');
+const pool = require('../config/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { asyncHandler, createError } = require('../utils/http');
 
@@ -7,13 +7,37 @@ const router = express.Router();
 
 router.use(requireAuth);
 
-router.get('/', asyncHandler(async (_req, res) => {
+function getBatchAccessClause(req, alias = 'b') {
+  if (req.user.role === 'ADMIN') {
+    return { clause: '', params: [] };
+  }
+
+  if (req.user.role === 'PRODUSEN') {
+    return { clause: `and ${alias}.producer_id = $1`, params: [req.user.id] };
+  }
+
+  return {
+    clause: `and exists (
+      select 1
+      from shipments s
+      where s.batch_id = ${alias}.id and s.courier_id = $1
+    )`,
+    params: [req.user.id],
+  };
+}
+
+router.get('/', asyncHandler(async (req, res) => {
+  const access = getBatchAccessClause(req);
+
   const result = await pool.query(
     `select b.public_id as id, b.variety, b.generation, b.quantity, b.phase, b.health_status,
             u.name as producer_name, b.seeded_at, b.created_at
      from batches b
      join users u on u.id = b.producer_id
+     where true
+       ${access.clause}
      order by b.created_at desc`,
+    access.params,
   );
 
   res.json({ ok: true, data: result.rows });
@@ -37,6 +61,10 @@ router.post('/', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (req, res)
 }));
 
 router.get('/:batchId/logs', asyncHandler(async (req, res) => {
+  const access = getBatchAccessClause(req);
+  const params = [req.params.batchId, ...access.params];
+  const accessClause = access.clause.replace('$1', '$2');
+
   const result = await pool.query(
     `select bl.id, b.public_id as batch_id, bl.from_phase, bl.to_phase, bl.notes, bl.created_at,
             u.name as created_by
@@ -44,8 +72,9 @@ router.get('/:batchId/logs', asyncHandler(async (req, res) => {
      join batches b on b.id = bl.batch_id
      join users u on u.id = bl.created_by
      where b.public_id = $1
+       ${accessClause}
      order by bl.created_at desc`,
-    [req.params.batchId],
+    params,
   );
 
   res.json({ ok: true, data: result.rows });
@@ -64,8 +93,12 @@ router.post('/:batchId/logs', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(asy
     await client.query('begin');
 
     const batchResult = await client.query(
-      'select id, phase from batches where public_id = $1 for update',
-      [req.params.batchId],
+      `select id, phase
+       from batches
+       where public_id = $1
+         and ($2::text = 'ADMIN' or producer_id = $3)
+       for update`,
+      [req.params.batchId, req.user.role, req.user.id],
     );
     const batch = batchResult.rows[0];
 
