@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import Navbar from '@/components/Navbar';
 import Image from 'next/image';
-import { ShieldCheck, Cpu, Truck, Search } from 'lucide-react';
+import { ShieldCheck, Cpu, Truck, Search, CalendarDays, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -138,7 +138,63 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3. FOOTER (Sesuai Hak Cipta Asli) */}
+      {/* 3. BLOG SECTION */}
+      <section id="blog" className="py-24 bg-[#0b132b] border-t border-slate-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col gap-4 text-center mb-12">
+            <span className="text-[#48cae4] text-xs font-mono tracking-widest uppercase">From the Blog</span>
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Inspirasi & Insight Terkini</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base">
+              Jelajahi artikel seputar inovasi, pertanian cerdas, dan teknologi rantai pasok yang membantu bisnis tumbuh lebih transparan.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                title: 'Meningkatkan Keamanan Produk dengan TraceChain',
+                category: 'Blockchain',
+                date: '02 Jun 2026',
+                excerpt: 'Bagaimana pemantauan jejak produk membantu menjaga integritas data di setiap titik distribusi.',
+              },
+              {
+                title: 'Smart IoT untuk Monitoring Kualitas Benih',
+                category: 'IoT',
+                date: '27 Mei 2026',
+                excerpt: 'Solusi sensor cerdas yang membantu tim produksi menyesuaikan kondisi lingkungan dengan lebih akurat.',
+              },
+              {
+                title: 'Membangun Rantai Pasok yang Transparan',
+                category: 'Supply Chain',
+                date: '18 Mei 2026',
+                excerpt: 'Kenapa transparansi data menjadi fondasi penting untuk efisiensi logistik dan kepercayaan mitra.',
+              },
+            ].map((post, index) => (
+              <article key={index} className="group rounded-3xl border border-slate-800 bg-[#111827]/90 p-6 shadow-2xl shadow-black/20 transition hover:-translate-y-1 hover:border-cyan-400/40">
+                <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-cyan-300/90">
+                  <span>{post.category}</span>
+                  <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-2 py-1 text-[10px]">Featured</span>
+                </div>
+                <h3 className="text-xl font-semibold text-white">{post.title}</h3>
+                <p className="mt-3 text-sm text-slate-400 leading-relaxed">{post.excerpt}</p>
+                <div className="mt-6 flex items-center justify-between text-sm text-slate-300">
+                  <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-cyan-300" /> {post.date}</span>
+                  <a href="#kontak" className="inline-flex items-center gap-1 text-cyan-300 hover:text-cyan-200">Baca lebih lanjut <ArrowRight className="h-4 w-4" /></a>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <a href="/admin/blog" className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-cyan-400 hover:text-cyan-200">
+              Lihat panel manajemen blog
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. FOOTER (Sesuai Hak Cipta Asli) */}
       <footer id="kontak" className="border-t border-slate-900 py-8 text-center text-xs text-slate-500 bg-[#0b132b]">
         <p>Copyright &copy; {new Date().getFullYear()} by Electra Tech Indonesia. All Rights Reserved.</p>
       </footer>
