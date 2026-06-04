@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "db:setup": "node scripts/setup-db.js"
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:setup": "node scripts/migrate.js && node scripts/seed.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
