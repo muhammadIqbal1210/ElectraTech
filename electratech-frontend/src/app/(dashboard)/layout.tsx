@@ -29,6 +29,7 @@ const menuByRole = {
       { name: 'SmartIoT Control', href: '/produsen/smartiot', icon: Cpu },
       { name: 'Pendaftaran Batch', href: '/produsen/batch/create', icon: FolderPlus },
       { name: 'Manajemen Budidaya', href: '/produsen/budidaya/create', icon: Sprout },
+      { name: 'Tracking Benih', href: '/produsen/tracking', icon: MapPinned },
       { name: 'AI ElectraAgent', href: '/produsen/agen', icon: Bot },
     ],
   },
