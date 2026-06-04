@@ -46,6 +46,8 @@ const menuByRole = {
     items: [
       { name: 'Dashboard Admin', href: '/admin', icon: LayoutDashboard },
       { name: 'Manajemen User', href: '/admin/users', icon: Users },
+      { name: 'Blog', href: '/admin/blog', icon: ClipboardList },
+      { name: 'Sensor IoT', href: '/admin/iot', icon: Cpu },
       { name: 'Audit TraceChain', href: '/admin/audit', icon: ShieldCheck },
       { name: 'Database Monitor', href: '/admin/database', icon: Database },
     ],
