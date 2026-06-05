@@ -161,7 +161,7 @@ export default function BudidayaPage() {
       {/* History Log Perubahan Fase */}
       <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
-          <Route className="w-5 h-5 text-purple-400" /> Rekam Jejak Siklus Hidup Bibit
+          <Route className="w-5 h-5 text-green-400" /> Rekam Jejak Siklus Hidup Bibit
         </h2>
         <div className="overflow-x-auto text-sm">
           <table className="w-full text-left">
@@ -170,6 +170,7 @@ export default function BudidayaPage() {
                 <th className="pb-2">ID Batch</th>
                 <th className="pb-2">Fase Asal</th>
                 <th className="pb-2">Fase Baru</th>
+                <th className="pb-2">Catatan</th>
                 <th className="pb-2">Tanggal Mutasi</th>
               </tr>
             </thead>
@@ -179,6 +180,7 @@ export default function BudidayaPage() {
                   <td className="py-3 font-mono text-emerald-400">{log.batch_id}</td>
                   <td className="py-3 text-slate-400">{log.from_phase || '-'}</td>
                   <td className="py-3 font-semibold text-emerald-400">{log.to_phase}</td>
+                  <td className="py-3 text-slate-400 italic">{log.notes || '-'}</td>
                   <td className="py-3 text-xs text-slate-500 font-mono">{new Date(log.created_at).toLocaleDateString('id-ID')}</td>
                 </tr>
               ))}
