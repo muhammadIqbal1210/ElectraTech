@@ -88,8 +88,8 @@ export default function BudidayaPage() {
             <label className="block text-xs text-slate-400 mb-1">Fase Hidup Baru</label>
             <select value={toPhase} onChange={(event) => setToPhase(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none">
               <option value="PENYEMAIAN">Fase Penyemaian (Seedling)</option>
-              <option value="VEGETATIF_AWAL">Fase Vegetatif Awal</option>
-              <option value="VEGETATIF_AKHIR">Fase Vegetatif Akhir</option>
+              <option value="VEGETATIF">Fase Vegetatif</option>
+              <option value="GENERATIF">Fase Generatif</option>
               <option value="SIAP_DISTRIBUSI">Fase Siap Kemas & Distribusi</option>
             </select>
           </div>
