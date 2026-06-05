@@ -1,6 +1,6 @@
 'use client';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { FolderPlus, ClipboardList } from 'lucide-react';
+import { FolderPlus, ClipboardList, CheckCircle2, AlertCircle } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 
 type BatchRow = {
@@ -17,12 +17,14 @@ export default function PendaftaranBatchPage() {
   const [generation, setGeneration] = useState('G1');
   const [quantity, setQuantity] = useState('');
   const [message, setMessage] = useState('');
+  const [isError, setIsError] = useState(false); // Tambahan state untuk membedakan warna pesan sukses/gagal
 
   const loadBatches = useCallback(async () => {
     try {
       const response = await apiRequest<BatchRow[]>('/api/batches');
       setBatchHistory(response.data || []);
     } catch (err) {
+      setIsError(true);
       setMessage(err instanceof Error ? err.message : 'Gagal memuat batch.');
     }
   }, []);
@@ -34,6 +36,7 @@ export default function PendaftaranBatchPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMessage('');
+    setIsError(false);
 
     try {
       await apiRequest<BatchRow>('/api/batches', {
@@ -43,42 +46,64 @@ export default function PendaftaranBatchPage() {
       setVariety('');
       setGeneration('G1');
       setQuantity('');
+      setIsError(false);
       setMessage('Batch baru berhasil didaftarkan.');
       await loadBatches();
     } catch (err) {
+      setIsError(true);
       setMessage(err instanceof Error ? err.message : 'Gagal mendaftarkan batch.');
     }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Kiri: Form Input */}
+    <div className="grid grid-cols-1 gap-6">
+      {/* Atas: Form Input */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
         <h2 className="font-bold text-base flex items-center gap-2 text-emerald-400">
           <FolderPlus className="w-5 h-5" /> Registrasi Batch Benih
         </h2>
-        <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Varietas Tanaman</label>
-            <input value={variety} onChange={(event) => setVariety(event.target.value)} type="text" placeholder="Misal: Cabai Rawit Janger" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Generasi Benih</label>
-            <input value={generation} onChange={(event) => setGeneration(event.target.value)} type="text" placeholder="Misal: F1, G1, G2" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required />
-          </div>
-          <div>
-            <label className="block text-xs text-slate-400 mb-1">Kuantitas Benih (Butir/Pot)</label>
-            <input value={quantity} onChange={(event) => setQuantity(event.target.value)} type="number" placeholder="1000" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required min={1} />
-          </div>
-          <button className="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-2.5 rounded-xl transition-all">
-            Kunci & Daftarkan Batch
-          </button>
-          {message && <p className="text-xs font-semibold text-emerald-300">{message}</p>}
-        </form>
+        
+        {/* Kontainer form utama */}
+        <div className="space-y-4">
+          <form className="flex flex-col lg:flex-row lg:items-end gap-4 text-sm" onSubmit={handleSubmit}>
+            <div className="flex-1 min-w-[200px]">
+              <label className="block text-xs text-slate-400 mb-1">Varietas Tanaman</label>
+              <input value={variety} onChange={(event) => setVariety(event.target.value)} type="text" placeholder="Misal: Cabai Rawit Janger" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required />
+            </div>
+            
+            <div className="w-full lg:w-48">
+              <label className="block text-xs text-slate-400 mb-1">Generasi Benih</label>
+              <input value={generation} onChange={(event) => setGeneration(event.target.value)} type="text" placeholder="Misal: F1, G1, G2" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required />
+            </div>
+            
+            <div className="w-full lg:w-48">
+              <label className="block text-xs text-slate-400 mb-1">Kuantitas Benih (Butir/Pot)</label>
+              <input value={quantity} onChange={(event) => setQuantity(event.target.value)} type="number" placeholder="1000" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" required min={1} />
+            </div>
+            
+            <div className="w-full lg:w-auto flex-shrink-0">
+              <button className="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-500 font-bold py-2.5 px-6 rounded-xl transition-all whitespace-nowrap">
+                Kunci & Daftarkan Batch
+              </button>
+            </div>
+          </form>
+
+          {/* Pesan Notifikasi ditaruh di luar baris form agar tidak merusak layout grid/flex */}
+          {message && (
+            <div className={`flex items-center gap-2 p-3 rounded-xl text-xs font-medium transition-all ${
+              isError 
+                ? 'bg-rose-500/10 border border-rose-500/20 text-rose-400' 
+                : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+            }`}>
+              {isError ? <AlertCircle className="w-4 h-4 flex-shrink-0" /> : <CheckCircle2 className="w-4 h-4 flex-shrink-0" />}
+              <span>{message}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Kanan: History Registrasi */}
-      <div className="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+      {/* Bawah: History Registrasi */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
           <ClipboardList className="w-5 h-5 text-purple-400" /> Riwayat Registrasi Hulu
         </h2>
@@ -107,7 +132,6 @@ export default function PendaftaranBatchPage() {
           </table>
         </div>
       </div>
-
     </div>
   );
 }
