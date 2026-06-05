@@ -190,34 +190,46 @@ export default function BudidayaPage() {
       </div>
 
       <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h2 className="font-bold text-base flex items-center gap-2 text-purple-400">
-          <PackagePlus className="w-5 h-5" /> Serahkan Paket ke Kurir
-        </h2>
-        <form className="space-y-4 text-sm" onSubmit={handleCreateShipment}>
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Batch Siap Kirim</label>
-              <select value={shipmentBatchId} onChange={(event) => setShipmentBatchId(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required>
-                {batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>{batch.id} - {batch.variety}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Jumlah Bibit Dalam Paket</label>
-              <input value={packageQuantity} onChange={(event) => setPackageQuantity(event.target.value)} type="number" min={1} placeholder="250" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-400 mb-1">Tujuan Pengiriman</label>
-              <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Alamat penerima / hub distribusi" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
-            </div>
+      <h2 className="font-bold text-base flex items-center gap-2 text-purple-400">
+        <PackagePlus className="w-5 h-5" /> Serahkan Paket ke Kurir
+      </h2>
+      
+      <form className="space-y-4 text-sm" onSubmit={handleCreateShipment}>
+        
+        {/* Ganti ke grid-cols-12 agar bisa membagi lebar secara fleksibel */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
+          
+          {/* 1. Batch Siap Kirim (Diberi ruang paling besar: 5 dari 12 kolom) */}
+          <div className="xl:col-span-3">
+            <label className="block text-xs text-slate-400 mb-1">Batch Siap Kirim</label>
+            <select value={shipmentBatchId} onChange={(event) => setShipmentBatchId(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required>
+              {batches.map((batch) => (
+                <option key={batch.id} value={batch.id}>{batch.id} - {batch.variety}</option>
+              ))}
+            </select>
           </div>
-          <textarea value={shipmentNotes} onChange={(event) => setShipmentNotes(event.target.value)} placeholder="Catatan handling untuk kurir" className="min-h-20 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" />
-          <button className="w-full bg-purple-600 hover:bg-purple-500 font-bold py-2.5 rounded-xl transition-all">
-            Buat Paket Siap Pickup
-          </button>
-        </form>
-      </div>
+          
+          {/* 2. Jumlah Bibit (Dibuat ringkas karena hanya angka: 3 dari 12 kolom) */}
+          <div className="xl:col-span-2">
+            <label className="block text-xs text-slate-400 mb-1">Jumlah Bibit Dalam Paket</label>
+            <input value={packageQuantity} onChange={(event) => setPackageQuantity(event.target.value)} type="number" min={1} placeholder="250" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
+          </div>
+          
+          {/* 3. Tujuan Pengiriman (Sedang menuju luas: 4 dari 12 kolom) */}
+          <div className="xl:col-span-7">
+            <label className="block text-xs text-slate-400 mb-1">Tujuan Pengiriman</label>
+            <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Alamat penerima / hub distribusi" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
+          </div>
+
+        </div>
+
+        <textarea value={shipmentNotes} onChange={(event) => setShipmentNotes(event.target.value)} placeholder="Catatan handling untuk kurir" className="min-h-20 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 resize-none" />
+        
+        <button className="w-full bg-purple-600 hover:bg-purple-500 font-bold py-2.5 rounded-xl transition-all">
+          Buat Paket Siap Pickup
+        </button>
+      </form>
+    </div>
       <div className="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
           <PackagePlus className="w-5 h-5 text-purple-400" /> Paket dari Produsen ke Kurir
