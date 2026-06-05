@@ -105,7 +105,7 @@ export default function PendaftaranBatchPage() {
       {/* Bawah: History Registrasi */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
-          <ClipboardList className="w-5 h-5 text-purple-400" /> Riwayat Registrasi Hulu
+          <ClipboardList className="w-5 h-5 text-green-400" /> Riwayat Registrasi Hulu
         </h2>
         <div className="overflow-x-auto text-sm">
           <table className="w-full text-left">
