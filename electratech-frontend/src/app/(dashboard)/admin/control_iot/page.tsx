@@ -40,9 +40,6 @@ type IotAccess = {
   deviceName: string;
   deviceType: string;
   location: string;
-  accessLevel: 'Read Only' | 'Control' | 'Admin';
-  connection: 'Online' | 'Standby' | 'Maintenance';
-  notes: string;
 };
 
 const initialAssignments: IotAccess[] = [
@@ -52,9 +49,6 @@ const initialAssignments: IotAccess[] = [
     deviceName: 'SmartLink Sensor A3',
     deviceType: 'Sensor Suhu & Kelembaban',
     location: 'Greenhouse A3',
-    accessLevel: 'Control',
-    connection: 'Online',
-    notes: 'Aktif untuk monitoring malam',
   },
   {
     id: 102,
@@ -62,9 +56,6 @@ const initialAssignments: IotAccess[] = [
     deviceName: 'Pompa UV Nursery',
     deviceType: 'Aktuator Pompa',
     location: 'Blok Nursery',
-    accessLevel: 'Read Only',
-    connection: 'Standby',
-    notes: 'Mode manual oleh tim produksi',
   },
   {
     id: 103,
@@ -72,17 +63,9 @@ const initialAssignments: IotAccess[] = [
     deviceName: 'Gateway Distribusi 07',
     deviceType: 'Gateway Logistik',
     location: 'Rute Timur',
-    accessLevel: 'Read Only',
-    connection: 'Online',
-    notes: 'Dipakai untuk tracking perjalanan',
   },
 ];
 
-const statusStyles: Record<IotAccess['connection'], string> = {
-  Online: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-300',
-  Standby: 'border-amber-500/25 bg-amber-500/10 text-amber-300',
-  Maintenance: 'border-rose-500/25 bg-rose-500/10 text-rose-300',
-};
 
 export default function ControlIoTPage() {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -100,9 +83,6 @@ export default function ControlIoTPage() {
     deviceName: 'SmartLink Sensor A3',
     deviceType: 'Sensor Suhu & Kelembaban',
     location: 'Greenhouse A3',
-    accessLevel: 'Control' as IotAccess['accessLevel'],
-    connection: 'Online' as IotAccess['connection'],
-    notes: 'Monitoring real-time untuk user ini',
   });
 
   useEffect(() => {
@@ -198,9 +178,6 @@ export default function ControlIoTPage() {
       deviceName: '',
       deviceType: '',
       location: '',
-      accessLevel: 'Read Only',
-      connection: 'Standby',
-      notes: '',
     });
   };
 
@@ -210,9 +187,6 @@ export default function ControlIoTPage() {
       deviceName: item.deviceName,
       deviceType: item.deviceType,
       location: item.location,
-      accessLevel: item.accessLevel,
-      connection: item.connection,
-      notes: item.notes,
     });
   };
 
@@ -292,30 +266,6 @@ export default function ControlIoTPage() {
                   onChange={(event) => setBoxName(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/50"
                   placeholder="Box Nursery A3"
-                />
-              </label>
-
-              <label className="space-y-1 text-sm text-slate-300">
-                <span>Status koneksi</span>
-                <select
-                  value={form.connection}
-                  onChange={(e) => setForm((prev) => ({ ...prev, connection: e.target.value as IotAccess['connection'] }))}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-slate-100 outline-none focus:border-cyan-500/50"
-                >
-                  <option value="Online">Online</option>
-                  <option value="Standby">Standby</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
-              </label>
-
-              <label className="space-y-1 text-sm text-slate-300 lg:col-span-3">
-                <span>Catatan akses</span>
-                <textarea
-                  value={form.notes}
-                  onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-                  rows={3}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/50"
-                  placeholder="Contoh: untuk monitoring malam atau mode manual oleh tim"
                 />
               </label>
 
@@ -430,9 +380,6 @@ export default function ControlIoTPage() {
                         deviceName: '',
                         deviceType: '',
                         location: '',
-                        accessLevel: 'Read Only',
-                        connection: 'Standby',
-                        notes: '',
                       });
                     }}
                     className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-sm text-slate-200"
@@ -471,28 +418,11 @@ export default function ControlIoTPage() {
                             <Wifi className="h-3.5 w-3.5" />
                             {item.deviceType}
                           </span>
-                          <span className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusStyles[item.connection]}`}>
-                            {item.connection}
-                          </span>
-                          <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-1 text-[11px] font-semibold text-violet-200">
-                            {item.accessLevel}
-                          </span>
                         </div>
 
                         <div>
                           <h3 className="text-lg font-semibold text-slate-100">{item.deviceName}</h3>
                           <p className="mt-1 text-sm text-slate-400">{item.location}</p>
-                        </div>
-
-                        <div className="grid gap-3 text-sm text-slate-300 md:grid-cols-2">
-                          <div className="rounded-xl border border-slate-800 bg-slate-900 p-3">
-                            <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Hak akses</p>
-                            <p className="mt-1 font-medium text-slate-100">{item.accessLevel}</p>
-                          </div>
-                          <div className="rounded-xl border border-slate-800 bg-slate-900 p-3">
-                            <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Catatan</p>
-                            <p className="mt-1 font-medium text-slate-100">{item.notes || 'Tidak ada catatan khusus'}</p>
-                          </div>
                         </div>
                       </div>
 
