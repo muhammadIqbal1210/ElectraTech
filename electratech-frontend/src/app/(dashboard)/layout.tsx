@@ -135,10 +135,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between p-5 shrink-0">
         <div className="space-y-6">
           <Link href="/" className="block px-2 py-1">
-            <h2 className="text-xl font-black bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
-              ELECTRA TECH
-            </h2>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
+            <img src="/monocromlogo.png" alt="ElectraTech Logo" className="h-10 w-auto" />
+            <p className="text-[10px] text-slate-500 tracking-widest mt-2 ps-4">
               Core Ledger & IoT
             </p>
           </Link>
@@ -167,14 +165,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="space-y-3">
-          <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-            <div className="flex items-center gap-2">
-              <PackageCheck className="h-4 w-4 text-cyan-400" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-cyan-300">
-                TraceChain Sync
-              </span>
-            </div>
-          </div>
           <button
             type="button"
             onClick={handleLogout}
