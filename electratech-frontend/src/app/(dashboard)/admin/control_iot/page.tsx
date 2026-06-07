@@ -21,7 +21,6 @@ type ComponentDraft = {
   name: string;
   unit: string;
   pin: string;
-  notes: string;
 };
 
 type UserProfile = {
@@ -29,8 +28,8 @@ type UserProfile = {
   name: string;
   username: string;
   role: ApiUser['role'];
-  area?: string;
   email?: string;
+  area?: string;
   status?: 'Aktif' | 'Review' | 'Pending';
 };
 
@@ -77,7 +76,7 @@ export default function ControlIoTPage() {
   const [deviceId, setDeviceId] = useState('DEV-IO-001');
   const [boxName, setBoxName] = useState('Box Nursery A3');
   const [components, setComponents] = useState<ComponentDraft[]>([
-    { id: 1, type: 'SENSOR', name: '', unit: '', pin: '', notes: '' },
+    { id: 1, type: 'SENSOR', name: '', unit: '', pin: '' },
   ]);
   const [form, setForm] = useState({
     deviceName: 'SmartLink Sensor A3',
@@ -127,7 +126,7 @@ export default function ControlIoTPage() {
   const addComponentField = () => {
     setComponents((prev) => [
       ...prev,
-      { id: Date.now() + prev.length, type: 'SENSOR', name: '', unit: '', pin: '', notes: '' },
+      { id: Date.now() + prev.length, type: 'SENSOR', name: '', unit: '', pin: '' },
     ]);
   };
 
@@ -227,13 +226,10 @@ export default function ControlIoTPage() {
                 <h2 className="text-xl font-semibold text-slate-100">Perangkat untuk penakar</h2>
                 <p className="text-sm text-slate-400">Pilih user penakar, isi device ID, nama box/lokasi, lalu tambahkan komponen sensor atau aktuator di bawahnya.</p>
               </div>
-              <div className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300">
-                {selectedUser?.role ?? 'PRODUSEN'} • {selectedUser?.area ?? 'Data dari database'}
-              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-4 lg:grid-cols-3">
-              <label className="space-y-1 text-sm text-slate-300 lg:col-span-3">
+              <label className="space-y-1 text-sm text-slate-300 lg:col-span-1">
                 <span>Pilih user penakar</span>
                 <select
                   value={selectedUserId}
@@ -242,7 +238,7 @@ export default function ControlIoTPage() {
                   disabled={loadingUsers}
                 >
                   {penakarUsers.map((user) => (
-                    <option key={user.id} value={user.id}>{user.name} — {user.area}</option>
+                    <option key={user.id} value={user.id}>{user.name} — {user.role}</option>
                   ))}
                 </select>
                 {loadingUsers && <p className="mt-1 text-xs text-cyan-300">Memuat data user dari database...</p>}
@@ -252,7 +248,7 @@ export default function ControlIoTPage() {
               <label className="space-y-1 text-sm text-slate-300">
                 <span>Device ID</span>
                 <input
-                  value={deviceId}
+                  value={deviceId}  
                   onChange={(event) => setDeviceId(event.target.value)}
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-500/50"
                   placeholder="DEV-IO-001"
@@ -347,17 +343,6 @@ export default function ControlIoTPage() {
                           />
                         </label>
                       </div>
-
-                      <label className="mt-4 block space-y-1 text-sm text-slate-300">
-                        <span>Catatan tambahan</span>
-                        <textarea
-                          value={component.notes}
-                          onChange={(event) => updateComponentField(component.id, 'notes', event.target.value)}
-                          rows={2}
-                          className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500/50"
-                          placeholder="Opsional: lokasi pemasangan atau aturan trigger"
-                        />
-                      </label>
                     </article>
                   ))}
                 </div>
@@ -369,7 +354,7 @@ export default function ControlIoTPage() {
                   className="inline-flex items-center gap-2 rounded-xl bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
                 >
                   <Plus className="h-4 w-4" />
-                  {editingId ? 'Simpan perubahan' : 'Tambah akses IoT'}
+                  {editingId ? 'Simpan perubahan' : 'Simpan dan daftarkan perangkat'}
                 </button>
                 {editingId ? (
                   <button
@@ -403,50 +388,63 @@ export default function ControlIoTPage() {
               </div>
             </div>
 
-            <div className="grid gap-4">
+            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
               {userAssignments.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-950 p-6 text-sm text-slate-400">
                   Belum ada perangkat IoT yang ditambahkan untuk user ini.
                 </div>
               ) : (
-                userAssignments.map((item) => (
-                  <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-[11px] font-semibold text-cyan-200">
-                            <Wifi className="h-3.5 w-3.5" />
-                            {item.deviceType}
+                <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                  <thead className="bg-slate-900/80 text-[11px] uppercase tracking-[0.25em] text-slate-400">
+                    <tr>
+                      <th className="px-4 py-3">Device ID</th>
+                      <th className="px-4 py-3">Nama perangkat</th>
+                      <th className="px-4 py-3">Jenis</th>
+                      <th className="px-4 py-3">Lokasi</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                    {userAssignments.map((item) => (
+                      <tr key={item.id} className="hover:bg-slate-900/80">
+                        <td className="px-4 py-4 font-mono text-xs text-cyan-300">#{item.id}</td>
+                        <td className="px-4 py-4">
+                          <p className="font-semibold text-slate-100">{item.deviceName}</p>
+                          <p className="text-xs text-slate-400">User aktif • {selectedUser?.name ?? 'Penakar'}</p>
+                        </td>
+                        <td className="px-4 py-4 text-slate-300">{item.deviceType}</td>
+                        <td className="px-4 py-4 text-slate-300">{item.location}</td>
+                        <td className="px-4 py-4">
+                          <span className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+                            <Wifi className="mr-1 h-3 w-3" />
+                            Aktif
                           </span>
-                        </div>
-
-                        <div>
-                          <h3 className="text-lg font-semibold text-slate-100">{item.deviceName}</h3>
-                          <p className="mt-1 text-sm text-slate-400">{item.location}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 lg:flex-col lg:items-stretch">
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(item)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-sm font-semibold text-cyan-100 hover:bg-cyan-500/20"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item.id)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-sm font-semibold text-rose-100 hover:bg-rose-500/20"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Hapus
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(item)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-500/20"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(item.id)}
+                              className="inline-flex items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-100 hover:bg-rose-500/20"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
           </section>
