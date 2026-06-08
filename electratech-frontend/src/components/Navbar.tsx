@@ -79,7 +79,7 @@ export default function Navbar() {
             href="/login"
             className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold transition"
           >
-            Dashboard
+            Masuk
           </Link>
         </div>
 
@@ -103,7 +103,7 @@ export default function Navbar() {
               href="/login"
               className="bg-cyan-500 text-slate-900 py-3 rounded-xl text-center font-semibold"
             >
-              Dashboard
+              Masuk
             </Link>
           </div>
         </div>
