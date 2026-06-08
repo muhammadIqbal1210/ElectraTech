@@ -298,7 +298,7 @@ export default function ControlIoTPage() {
                         )}
                       </div>
 
-                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <label className="space-y-1 text-sm text-slate-300">
                           <span>Tipe komponen</span>
                           <select
@@ -332,16 +332,6 @@ export default function ControlIoTPage() {
                             />
                           </label>
                         ) : null}
-
-                        <label className="space-y-1 text-sm text-slate-300">
-                          <span>Konfigurasi pin</span>
-                          <input
-                            value={component.pin}
-                            onChange={(event) => updateComponentField(component.id, 'pin', event.target.value)}
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500/50"
-                            placeholder="D4 / A0 / GPIO17"
-                          />
-                        </label>
                       </div>
                     </article>
                   ))}
