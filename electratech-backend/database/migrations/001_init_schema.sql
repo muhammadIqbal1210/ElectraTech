@@ -65,17 +65,6 @@ CREATE TABLE IF NOT EXISTS shipments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS iot_logs (
-  id BIGSERIAL PRIMARY KEY,
-  batch_id UUID REFERENCES batches(id) ON DELETE SET NULL,
-  temperature_c NUMERIC(5, 2) NOT NULL,
-  humidity_percent NUMERIC(5, 2) NOT NULL,
-  light_lux NUMERIC(10, 2) NOT NULL,
-  pump_on BOOLEAN NOT NULL DEFAULT false,
-  fan_on BOOLEAN NOT NULL DEFAULT false,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE TABLE IF NOT EXISTS package_tracking (
   id BIGSERIAL PRIMARY KEY,
   receipt_number TEXT NOT NULL,
@@ -90,13 +79,94 @@ CREATE TABLE IF NOT EXISTS package_tracking (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE devices (
+    id BIGSERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id),
+    device_code VARCHAR(100) UNIQUE NOT NULL,
+    box_name VARCHAR(255),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE device_components (
+    id BIGSERIAL PRIMARY KEY,
+    device_id BIGINT NOT NULL
+        REFERENCES devices(id)
+        ON DELETE CASCADE,
+    component_type VARCHAR(20) NOT NULL
+        CHECK (
+            component_type IN (
+                'sensor',
+                'actuator'
+            )
+        ),
+    component_name VARCHAR(255) NOT NULL,
+    unit VARCHAR(50),
+    data_type VARCHAR(20) NOT NULL
+        CHECK (
+            data_type IN (
+                'number',
+                'boolean',
+                'string'
+            )
+        ),
+    mqtt_topic VARCHAR(255) NOT NULL UNIQUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE iot_logs (
+    id BIGSERIAL PRIMARY KEY,
+    component_id BIGINT NOT NULL
+        REFERENCES device_components(id),
+    value VARCHAR(100),
+    recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE device_commands (
+    id BIGSERIAL PRIMARY KEY,
+    component_id BIGINT NOT NULL
+        REFERENCES device_components(id)
+        ON DELETE CASCADE,
+    command_value TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
+        CHECK (
+            status IN (
+                'PENDING',
+                'SENT',
+                'SUCCESS',
+                'FAILED'
+            )
+        ),
+    issued_by UUID NOT NULL
+        REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    executed_at TIMESTAMPTZ
+);
+
+CREATE TABLE device_configuration_logs (
+    id BIGSERIAL PRIMARY KEY,
+    device_id BIGINT NOT NULL
+        REFERENCES devices(id)
+        ON DELETE CASCADE,
+    action VARCHAR(50) NOT NULL,
+    description TEXT,
+    changed_by UUID
+        REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_batches_public_id ON batches(public_id);
 CREATE INDEX IF NOT EXISTS idx_shipments_receipt_number ON shipments(receipt_number);
 CREATE INDEX IF NOT EXISTS idx_shipments_status ON shipments(status);
 CREATE INDEX IF NOT EXISTS idx_shipments_courier_id ON shipments(courier_id);
-CREATE INDEX IF NOT EXISTS idx_iot_logs_recorded_at ON iot_logs(recorded_at DESC);
 CREATE INDEX IF NOT EXISTS idx_package_tracking_receipt ON package_tracking(receipt_number);
 CREATE INDEX IF NOT EXISTS idx_package_tracking_recorded_at ON package_tracking(recorded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_devices_user ON devices(user_id);
+CREATE INDEX IF NOT EXISTS idx_device_components_device ON device_components(device_id);
+CREATE INDEX IF NOT EXISTS idx_device_components_topic ON device_components(mqtt_topic);
+CREATE INDEX IF NOT EXISTS idx_iot_logs_component ON iot_logs(component_id);
+CREATE INDEX IF NOT EXISTS idx_iot_logs_recorded ON iot_logs(recorded_at DESC);
+CREATE INDEX IF NOT EXISTS idx_commands_component ON device_commands(component_id);
 
 CREATE OR REPLACE FUNCTION set_public_ids()
 RETURNS trigger AS $$
