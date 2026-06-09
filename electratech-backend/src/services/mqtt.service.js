@@ -25,9 +25,17 @@ async function refreshMqttSubscriptions() {
 
   if (topicsToSubscribe.length > 0) {
     client.subscribe(topicsToSubscribe, { qos: 1 }, (error) => {
-      if (!error) {
-        subscribedTopics = new Set([...subscribedTopics, ...topicsToSubscribe]);
+      if (error) {
+        console.error('❌ Gagal subscribe:', error.message);
+        return;
       }
+
+      console.log('📡 Subscribe topic:', topicsToSubscribe);
+
+      subscribedTopics = new Set([
+        ...subscribedTopics,
+        ...topicsToSubscribe,
+      ]);
     });
   }
 
@@ -50,6 +58,10 @@ async function recordTelemetry(topic, payload) {
     [topic, value],
   );
 
+  console.log(
+    `💾 Data tersimpan | Topic: ${topic} | Value: ${value}`
+  );
+
   return result.rows[0] || null;
 }
 
@@ -64,6 +76,9 @@ function startMqttBridge() {
 
   client.on('connect', () => {
     connected = true;
+
+    console.log('✅ MQTT Connected ke broker:', brokerUrl);
+
     void refreshMqttSubscriptions();
   });
 
@@ -72,8 +87,17 @@ function startMqttBridge() {
   });
 
   client.on('message', (topic, payload) => {
+    console.log(
+      '📥 MQTT Message:',
+      topic,
+      payload.toString()
+    );
+
     void recordTelemetry(topic, payload).catch((error) => {
-      console.error(`Gagal menyimpan telemetry MQTT dari topic ${topic}:`, error.message);
+      console.error(
+        `Gagal menyimpan telemetry MQTT dari topic ${topic}:`,
+        error.message
+      );
     });
   });
 
