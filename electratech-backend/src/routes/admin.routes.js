@@ -1,8 +1,9 @@
   const express = require('express');
   const pool = require('../config/db');
-  const { requireAuth, requireRole } = require('../middleware/auth');
-  const { asyncHandler, createError } = require('../utils/http');
-  const { hashPassword } = require('../utils/password');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const { asyncHandler, createError } = require('../utils/http');
+const { hashPassword } = require('../utils/password');
+const { refreshMqttSubscriptions } = require('../services/mqtt.service');
 
   const router = express.Router();
 
@@ -170,7 +171,7 @@
             component.componentName,
             component.componentType === 'sensor' ? component.unit || null : null,
             resolveComponentDataType(component.componentType),
-            buildMqttTopic(device.device_code, device.id, component.componentName, index),
+            buildMqttTopic(device.device_code, component.componentType, component.componentName, index),
             component.isActive ?? true,
           ],
         );
@@ -185,9 +186,10 @@
         [device.id, `Perangkat ${device.device_code} didaftarkan.`, userId],
       );
 
-      await client.query('commit');
+    await client.query('commit');
+    await refreshMqttSubscriptions();
 
-      res.status(201).json({
+    res.status(201).json({
         ok: true,
         data: {
           id: device.id,
@@ -275,7 +277,7 @@
             component.componentName,
             component.componentType === 'sensor' ? component.unit || null : null,
             resolveComponentDataType(component.componentType),
-            buildMqttTopic(deviceCode, deviceId, component.componentName, index),
+            buildMqttTopic(deviceCode, component.componentType, component.componentName, index),
             component.isActive ?? true,
           ],
         );
@@ -290,9 +292,10 @@
         [deviceId, `Konfigurasi perangkat ${deviceCode} diperbarui.`, userId],
       );
 
-      await client.query('commit');
+    await client.query('commit');
+    await refreshMqttSubscriptions();
 
-      const device = deviceResult.rows[0];
+    const device = deviceResult.rows[0];
       res.json({
         ok: true,
         data: {
@@ -328,11 +331,13 @@
       [req.params.id],
     );
 
-    if (!result.rows[0]) {
-      throw createError(404, 'Perangkat tidak ditemukan.');
-    }
+  if (!result.rows[0]) {
+    throw createError(404, 'Perangkat tidak ditemukan.');
+  }
 
-    res.json({ ok: true, data: result.rows[0] });
-  }));
+  await refreshMqttSubscriptions();
+
+  res.json({ ok: true, data: result.rows[0] });
+}));
 
   module.exports = router;
