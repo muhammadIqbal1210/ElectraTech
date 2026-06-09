@@ -7,66 +7,119 @@ const router = express.Router();
 
 router.use(requireAuth);
 
-function getBatchAccessClause(req, paramIndex) {
+function getDeviceAccessClause(req, paramIndex) {
   if (req.user.role === 'ADMIN') {
     return { clause: '', params: [] };
   }
 
-  if (req.user.role === 'PRODUSEN') {
-    return { clause: `and b.producer_id = $${paramIndex}`, params: [req.user.id] };
-  }
-
-  return {
-    clause: `and exists (
-      select 1
-      from shipments s
-      where s.batch_id = b.id and s.courier_id = $${paramIndex}
-    )`,
-    params: [req.user.id],
-  };
+  return { clause: `and d.user_id = $${paramIndex}`, params: [req.user.id] };
 }
 
-router.get('/logs', asyncHandler(async (req, res) => {
-  const { batchId, limit = 50 } = req.query;
-  const access = getBatchAccessClause(req, 3);
+router.get('/devices', asyncHandler(async (req, res) => {
+  const access = getDeviceAccessClause(req, 1);
 
   const result = await pool.query(
-    `select il.id, b.public_id as batch_id, il.temperature_c, il.humidity_percent,
-            il.light_lux, il.pump_on, il.fan_on, il.recorded_at
+    `select
+       d.id,
+       d.device_code as deviceCode,
+       d.box_name as boxName,
+       json_agg(json_build_object(
+         'id', dc.id,
+         'componentType', dc.component_type,
+         'componentName', dc.component_name,
+         'unit', dc.unit,
+         'dataType', dc.data_type,
+         'mqttTopic', dc.mqtt_topic,
+         'isActive', dc.is_active,
+         'lastValue', il.value,
+         'lastRecordedAt', il.recorded_at
+       ) order by dc.id) as components
+     from devices d
+     join device_components dc on dc.device_id = d.id
+     left join lateral (
+       select value, recorded_at
+       from iot_logs
+       where component_id = dc.id
+       order by recorded_at desc
+       limit 1
+     ) il on true
+     where 1=1 ${access.clause}
+     group by d.id
+     order by d.created_at desc`,
+    [...access.params],
+  );
+
+  res.json({ ok: true, data: result.rows.map((row) => ({
+    ...row,
+    components: row.components || [],
+  })) });
+}));
+
+router.get('/logs', asyncHandler(async (req, res) => {
+  const { deviceCode, limit = 50 } = req.query;
+  const access = getDeviceAccessClause(req, 3);
+
+  const result = await pool.query(
+    `select il.id,
+            d.device_code as deviceCode,
+            d.box_name as boxName,
+            dc.id as componentId,
+            dc.component_type as componentType,
+            dc.component_name as componentName,
+            dc.mqtt_topic as mqttTopic,
+            il.value,
+            il.recorded_at
      from iot_logs il
-     join batches b on b.id = il.batch_id
-     where ($1::text is null or b.public_id = $1)
+     join device_components dc on dc.id = il.component_id
+     join devices d on d.id = dc.device_id
+     where ($1::text is null or d.device_code = $1)
        ${access.clause}
      order by il.recorded_at desc
      limit $2`,
-    [batchId || null, Math.min(Number(limit) || 50, 200), ...access.params],
+    [deviceCode || null, Math.min(Number(limit) || 50, 200), ...access.params],
   );
 
   res.json({ ok: true, data: result.rows });
 }));
 
 router.post('/logs', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (req, res) => {
-  const { batchId, temperatureC, humidityPercent, lightLux, pumpOn = false, fanOn = false } = req.body;
+  const { componentId, mqttTopic, value } = req.body;
 
-  if (temperatureC == null || humidityPercent == null || lightLux == null) {
-    throw createError(400, 'temperatureC, humidityPercent, dan lightLux wajib diisi.');
+  if (value == null || (!componentId && !mqttTopic)) {
+    throw createError(400, 'componentId atau mqttTopic dan value wajib diisi.');
   }
 
-  const result = await pool.query(
-    `insert into iot_logs (batch_id, temperature_c, humidity_percent, light_lux, pump_on, fan_on)
-     select b.id, $2, $3, $4, $5, $6
-     from batches b
-     where b.public_id = $1
-       and ($7::text = 'ADMIN' or b.producer_id = $8)
-     returning id, temperature_c, humidity_percent, light_lux, pump_on, fan_on, recorded_at`,
-    [batchId || null, temperatureC, humidityPercent, lightLux, pumpOn, fanOn, req.user.role, req.user.id],
+  const query = componentId
+    ? `select dc.id
+       from device_components dc
+       join devices d on d.id = dc.device_id
+       where dc.id = $1
+         ${req.user.role === 'ADMIN' ? '' : 'and d.user_id = $2'}
+       limit 1`
+    : `select dc.id
+       from device_components dc
+       join devices d on d.id = dc.device_id
+       where dc.mqtt_topic = $1
+         ${req.user.role === 'ADMIN' ? '' : 'and d.user_id = $2'}
+       limit 1`;
+
+  const params = componentId ? [componentId] : [mqttTopic];
+  if (req.user.role !== 'ADMIN') params.push(req.user.id);
+
+  const componentResult = await pool.query(query, params);
+
+  if (!componentResult.rows[0]) {
+    throw createError(404, 'Komponen IoT tidak ditemukan atau tidak punya akses.');
+  }
+
+  const insertResult = await pool.query(
+    `insert into iot_logs (component_id, value)
+     values ($1, $2)
+     returning id, component_id, value, recorded_at`,
+    [componentResult.rows[0].id, value],
   );
 
-  if (!result.rows[0]) {
-    throw createError(404, 'Batch tidak ditemukan atau bukan milik user login.');
-  }
-
-  res.status(201).json({ ok: true, data: result.rows[0] });
+  res.status(201).json({ ok: true, data: insertResult.rows[0] });
 }));
 
 module.exports = router;
