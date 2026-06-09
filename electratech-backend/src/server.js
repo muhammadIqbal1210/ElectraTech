@@ -8,6 +8,7 @@ const adminRoutes = require('./routes/admin.routes');
 const batchRoutes = require('./routes/batch.routes');
 const iotRoutes = require('./routes/iot.routes');
 const trackingRoutes = require('./routes/tracking.routes');
+const { startMqttBridge } = require('./services/mqtt.service');
 const { errorHandler, notFoundHandler } = require('./utils/http');
 
 const app = express();
@@ -39,4 +40,5 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Electra Tech API running on http://localhost:${port}`);
+  startMqttBridge();
 });
