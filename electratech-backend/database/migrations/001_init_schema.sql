@@ -116,8 +116,10 @@ CREATE TABLE device_components (
 
 CREATE TABLE iot_logs (
     id BIGSERIAL PRIMARY KEY,
-    component_id BIGINT NOT NULL
-        REFERENCES device_components(id),
+    component_id BIGINT
+        REFERENCES device_components(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
     value VARCHAR(100),
     recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
