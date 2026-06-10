@@ -34,11 +34,13 @@ type IotLog = {
 };
 
 export default function SmartIoTPage() {
+  const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [devices, setDevices] = useState<IotDevice[]>([]);
   const [logs, setLogs] = useState<IotLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actuatorState, setActuatorState] = useState<Record<number, boolean>>({});
+  const selectedDevice = devices.find((d) => String(d.id) === String(selectedDeviceId)) ?? null
 
   useEffect(() => {
     const loadIoTData = async () => {
@@ -52,6 +54,9 @@ export default function SmartIoTPage() {
         const logData = logResponse.data || [];
 
         setDevices(deviceData);
+        if (deviceData.length > 0) {
+          setSelectedDeviceId(deviceData[0].id);
+        }
         setLogs(logData);
 
         const newActuators: Record<number, boolean> = {};
@@ -127,6 +132,27 @@ export default function SmartIoTPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
+          <div className="mb-5">
+            <label className="block text-sm mb-2 text-slate-400">
+              Pilih Perangkat
+            </label>
+              <select
+                value={selectedDeviceId ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedDeviceId(val === '' ? null : Number(val));
+                }}
+                className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-slate-100"
+              >
+                <option value="">-- Pilih Perangkat IoT --</option>
+                
+                {devices.map((device) => (
+                  <option key={device.id} value={device.id}>
+                    {device.deviceCode} - {device.boxName || 'Tanpa Nama Box'}
+                  </option>
+                ))}
+              </select>
+          </div>
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold">Detail Perangkat</h2>
@@ -141,17 +167,17 @@ export default function SmartIoTPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {devices.map((device) => (
-                <div key={device.id} className="rounded-3xl border border-slate-800 bg-slate-950 p-4">
+              {selectedDevice && (
+                <div key={selectedDevice.id} className="rounded-3xl border border-slate-800 bg-slate-950 p-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="font-semibold text-slate-100">{device.deviceCode}</p>
-                      <p className="text-xs text-slate-500">{device.boxName || 'Box belum diisi'}</p>
+                      <p className="font-semibold text-slate-100">{selectedDevice.deviceCode}</p>
+                      <p className="text-xs text-slate-500">{selectedDevice.boxName || 'Box belum diisi'}</p>
                     </div>
-                    <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{device.components.length} komponen</span>
+                    <span className="text-[11px] uppercase tracking-[0.2em] text-slate-500">{selectedDevice.components.length} komponen</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                    {device.components.map((component) => (
+                    {selectedDevice.components.map((component) => (
                       <div key={component.id} className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
                         <div className="flex justify-between items-start gap-3">
                           <div>
@@ -169,7 +195,7 @@ export default function SmartIoTPage() {
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>
@@ -179,13 +205,13 @@ export default function SmartIoTPage() {
             <h2 className="text-base font-bold">Kontrol Aktuator</h2>
             <p className="text-xs text-slate-500">Tampilan status diambil dari konfigurasi perangkat yang dibuat oleh admin.</p>
           </div>
-          {devices.flatMap((device) => device.components.filter((component) => component.componentType === 'actuator')).length === 0 ? (
+          {!selectedDevice || selectedDevice.components.filter((component) => component.componentType === 'actuator').length === 0 ? (
             <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 text-slate-400">
               Tidak ada aktuator terdaftar untuk perangkat ini.
             </div>
           ) : (
             <div className="space-y-3">
-              {devices.flatMap((device) => device.components)
+              {selectedDevice.components
                 .filter((component) => component.componentType === 'actuator')
                 .map((component) => (
                   <div key={component.id} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
@@ -229,12 +255,13 @@ export default function SmartIoTPage() {
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-slate-500">Memuat data log...</td>
                 </tr>
-              ) : logs.length === 0 ? (
+              ) : logs.filter((log) => selectedDevice ? log.deviceCode === selectedDevice.deviceCode:true).length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-6 text-center text-slate-500">Belum ada log MQTT tersedia.</td>
                 </tr>
               ) : (
-                logs.map((log) => (
+                logs.filter((log) => !selectedDevice || log.deviceCode === selectedDevice.deviceCode).
+                map((log) => (
                   <tr key={log.id} className="hover:bg-slate-800/10">
                     <td className="py-3 px-2 font-mono text-xs">{new Date(log.recorded_at).toLocaleTimeString('id-ID')}</td>
                     <td className="py-3 px-2 font-semibold text-slate-100">{log.deviceCode}</td>
