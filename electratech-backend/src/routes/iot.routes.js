@@ -21,8 +21,8 @@ router.get('/devices', asyncHandler(async (req, res) => {
   const result = await pool.query(
     `select
        d.id,
-       d.device_code as deviceCode,
-       d.box_name as boxName,
+       d.device_code as "deviceCode",
+       d.box_name as "boxName",
        json_agg(json_build_object(
          'id', dc.id,
          'componentType', dc.component_type,
