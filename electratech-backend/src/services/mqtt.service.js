@@ -1,7 +1,7 @@
 const mqtt = require('mqtt');
 const pool = require('../config/db');
 
-const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883';
+const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://72.61.118.54:53937';
 const commandSuffix = process.env.MQTT_COMMAND_SUFFIX || '/command';
 
 let client = null;
@@ -70,6 +70,8 @@ function startMqttBridge() {
 
   client = mqtt.connect(brokerUrl, {
     clientId: process.env.MQTT_CLIENT_ID || `electra_backend_${process.pid}`,
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
     clean: true,
     reconnectPeriod: 5000,
   });
