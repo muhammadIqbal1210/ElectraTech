@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://72.61.118.54:53937';
 const commandSuffix = process.env.MQTT_COMMAND_SUFFIX || '/command';
 
-let client = null;
+let client = null; 
 let connected = false;
 let subscribedTopics = new Set();
 
@@ -73,14 +73,13 @@ function startMqttBridge() {
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
     clean: true,
-    reconnectPeriod: 5000,
+    keepalive: 60,         // Menjaga koneksi tetap hidup (heartbeat)
+    reconnectPeriod: 2000, // Jika terputus, otomatis coba hubungkan kembali setiap 2 detik
   });
 
   client.on('connect', () => {
     connected = true;
-
     console.log('✅ MQTT Connected ke broker:', brokerUrl);
-
     void refreshMqttSubscriptions();
   });
 
@@ -133,7 +132,25 @@ function publishMqttCommand(component, commandId, commandValue) {
   });
 }
 
+// Hubungkan fungsi ini ke objek client
+function publishToBroker(topic, message) {
+  if (client && connected) {
+    client.publish(topic, message, { qos: 1 }, (err) => {
+      if (err) {
+        console.error(`[MQTT] Gagal publish ke ${topic}:`, err);
+      } else {
+        console.log(`[MQTT] Berhasil publish [${message}] ke -> ${topic}`);
+      }
+    });
+  } else {
+    console.error('[MQTT] Gagal mengirim, client tidak terhubung ke broker Mosquitto.');
+    // Lempar error agar ditangkap blok catch di router backend, status DB otomatis jadi 'FAILED'
+    throw new Error('MQTT client offline atau belum terinisialisasi.');
+  }
+}
+
 module.exports = {
+  publishToBroker,
   publishMqttCommand,
   refreshMqttSubscriptions,
   startMqttBridge,
