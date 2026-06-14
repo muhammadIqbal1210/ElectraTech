@@ -82,6 +82,12 @@ export default function SmartIoTPage() {
     };
 
     void loadIoTData();
+
+    // SET INTERVAL: Auto-refresh setiap 5 detik
+    const interval = setInterval(loadIoTData, 5000);
+
+    // Bersihkan interval saat komponen di-unmount
+    return () => clearInterval(interval);
   }, []);
 
   const toggleActuator = async (componentId: number) => {
