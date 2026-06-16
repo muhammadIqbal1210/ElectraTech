@@ -42,7 +42,7 @@ export default function SmartIoTPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actuatorState, setActuatorState] = useState<Record<number, boolean>>({});
-  
+
   // SOLUSI ERROR 1: Hanya pasang mounted state SEKALI saja saat inisialisasi browser
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -115,7 +115,7 @@ export default function SmartIoTPage() {
     }
   };
 
-  const filteredLogs = selectedDevice 
+  const filteredLogs = selectedDevice
     ? logs.filter((log) => (log.deviceCode || '').trim().toLowerCase() === (selectedDevice.deviceCode || '').trim().toLowerCase())
     : logs;
 
@@ -167,16 +167,16 @@ export default function SmartIoTPage() {
       const dateObj = new Date(safeDateStr);
       if (isNaN(dateObj.getTime())) return;
 
-      const timeStr = dateObj.toLocaleTimeString('id-ID', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
+      const timeStr = dateObj.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
       });
 
       if (!groupByTime[timeStr]) {
         groupByTime[timeStr] = { time: timeStr };
       }
-      
+
       const topic = log.mqttTopic || (log as any).mqtttopic || '';
       groupByTime[timeStr][topic] = isNaN(Number(log.value)) ? 0 : Number(log.value);
     });
@@ -240,7 +240,7 @@ export default function SmartIoTPage() {
           onChange={(e) => {
             const val = e.target.value;
             setSelectedDeviceId(val === '' ? null : Number(val));
-            setSelectedComponentFilter('all'); 
+            setSelectedComponentFilter('all');
           }}
           className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-slate-200 font-medium focus:outline-none focus:border-cyan-500"
         >
@@ -263,7 +263,7 @@ export default function SmartIoTPage() {
               <p className="text-xs text-slate-400">Analisis tren fluktuasi nilai indikator penakar.</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-slate-400" />
             <select
@@ -284,8 +284,8 @@ export default function SmartIoTPage() {
         <div className="w-full h-64 pt-2">
           {!isMounted || chartData.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center text-slate-500 border border-dashed border-slate-800 rounded-xl text-sm text-center p-4">
-              {!isMounted 
-                ? "Menyiapkan area grafik..." 
+              {!isMounted
+                ? "Menyiapkan area grafik..."
                 : "Tidak ada data riwayat aktivitas sensor fungsional yang tersedia untuk dirender pada alat ini."}
             </div>
           ) : (
@@ -295,12 +295,12 @@ export default function SmartIoTPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="time" stroke="#64748b" style={{ fontSize: '11px' }} />
                 <YAxis stroke="#64748b" style={{ fontSize: '11px' }} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '10px' }}
                   labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
-                
+
                 {/* SOLUSI ERROR 2: Ditambahkan `connectNulls={true}` agar garis sensor tidak patah/hilang akibat jeda transmisi log */}
                 {selectedComponentFilter === 'all' ? (
                   availableSensors.map((sensor, idx) => (
@@ -380,7 +380,7 @@ export default function SmartIoTPage() {
             <h2 className="text-base font-bold">Saklar Kendali</h2>
             <p className="text-xs text-slate-400">Tombol operasional untuk memicu status on/off perangkat keras.</p>
           </div>
-          
+
           {!selectedDevice || selectedDevice.components.filter((c) => (c.componentType || '').trim().toLowerCase() === 'actuator').length === 0 ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-5 text-center text-xs text-slate-500">
               Pilih perangkat dengan fungsi saklar untuk mengaktifkan panel kendali ini.
