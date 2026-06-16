@@ -62,11 +62,11 @@ router.get('/logs', asyncHandler(async (req, res) => {
 
   const result = await pool.query(
     `select il.id,
-            d.device_code as deviceCode,
-            d.box_name as boxName,
+            d.device_code as "deviceCode",
+            d.box_name as "boxName",
             dc.id as componentId,
             dc.component_type as componentType,
-            dc.component_name as componentName,
+            dc.component_name as "componentName",
             dc.mqtt_topic as mqttTopic,
             il.value,
             il.recorded_at
