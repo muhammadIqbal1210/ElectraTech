@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState } from 'react';
+
+import { useEffect, useState, useMemo } from 'react';
 import { ToggleLeft, ToggleRight, Activity, Cpu, Wifi, Database, LineChart as ChartIcon, Layers } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
@@ -34,6 +35,16 @@ type IotLog = {
   recorded_at: string;
 };
 
+// Helper internal untuk normalisasi data yang toleran terhadap format casing backend
+const getComponentType = (log: any) => (log.componentType || log.componenttype || '').trim().toLowerCase();
+const getMqttTopic = (log: any) => log.mqttTopic || log.mqtttopic || '';
+
+const getTopicSuffix = (topic: string) => {
+  if (!topic) return '';
+  const parts = topic.split('/');
+  return parts[parts.length - 1];
+};
+
 export default function SmartIoTPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
   const [selectedComponentFilter, setSelectedComponentFilter] = useState<string>('all');
@@ -43,15 +54,17 @@ export default function SmartIoTPage() {
   const [error, setError] = useState<string | null>(null);
   const [actuatorState, setActuatorState] = useState<Record<number, boolean>>({});
 
-  // SOLUSI ERROR 1: Hanya pasang mounted state SEKALI saja saat inisialisasi browser
+  // Proteksi Hydration Next.js
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const selectedDevice = devices.find((d) => String(d.id) === String(selectedDeviceId)) ?? null;
+  const selectedDevice = useMemo(() => {
+    return devices.find((d) => String(d.id) === String(selectedDeviceId)) ?? null;
+  }, [devices, selectedDeviceId]);
 
-  // Ambil data IoT dengan data log tersinkronisasi berdasarkan device yang aktif
+  // Ambil data IoT dengan siklus pembaruan berkala
   useEffect(() => {
     const loadIoTData = async () => {
       try {
@@ -74,16 +87,19 @@ export default function SmartIoTPage() {
         const logData = logResponse.data || [];
         setLogs(logData);
 
-        const newActuators: Record<number, boolean> = {};
-        deviceData.forEach((device) => {
-          device.components.forEach((component) => {
-            if ((component.componentType || '').trim().toLowerCase() === 'actuator') {
-              newActuators[component.id] = ['1', 'true', 'on', 'onn', 'yes'].includes((component.lastValue || '').toString().toLowerCase());
-            }
+        setActuatorState((prev) => {
+          const newActuators = { ...prev };
+          deviceData.forEach((device) => {
+            device.components.forEach((component) => {
+              if (getComponentType(component) === 'actuator') {
+                newActuators[component.id] = ['1', 'true', 'on', 'onn', 'yes'].includes(
+                  (component.lastValue || '').toString().toLowerCase()
+                );
+              }
+            });
           });
+          return newActuators;
         });
-
-        setActuatorState(newActuators);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Gagal memuat data IoT.');
       } finally {
@@ -96,10 +112,12 @@ export default function SmartIoTPage() {
     return () => clearInterval(interval);
   }, [selectedDeviceId]);
 
+  // Kontrol Aktuator dengan Optimistic Update & Sync Pengaman Polling
   const toggleActuator = async (componentId: number) => {
     const currentState = actuatorState[componentId] || false;
     const nextState = !currentState;
 
+    // 1. Jalankan langkah optimis di UI terlebih dahulu
     setActuatorState((prev) => ({ ...prev, [componentId]: nextState }));
 
     try {
@@ -108,52 +126,60 @@ export default function SmartIoTPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ value: nextState ? 'ON' : 'OFF' })
       });
+
+      // 2. Perbarui state devices lokal agar interval fetch berikutnya tidak menimpa status baru
+      setDevices((prevDevices) =>
+        prevDevices.map((device) => ({
+          ...device,
+          components: device.components.map((comp) =>
+            comp.id === componentId ? { ...comp, lastValue: nextState ? 'ON' : 'OFF' } : comp
+          )
+        }))
+      );
     } catch (err) {
+      // Rollback jika terjadi kegagalan transmisi API
       setActuatorState((prev) => ({ ...prev, [componentId]: currentState }));
       console.error('Gagal kontrol aktuator:', err);
       alert('Gagal mengirim perintah kontrol ke perangkat.');
     }
   };
 
-  const filteredLogs = selectedDevice
-    ? logs.filter((log) => (log.deviceCode || '').trim().toLowerCase() === (selectedDevice.deviceCode || '').trim().toLowerCase())
-    : logs;
+  const filteredLogs = useMemo(() => {
+    if (!selectedDevice) return logs;
+    return logs.filter(
+      (log) => (log.deviceCode || '').trim().toLowerCase() === (selectedDevice.deviceCode || '').trim().toLowerCase()
+    );
+  }, [logs, selectedDevice]);
+  //Jalur data khusus untuk tabel (Hanya mengambil 10 data terakhir/terbaru)
+  const tableLogs = useMemo(() => {
+    return filteredLogs.slice(0, 10);
+  }, [filteredLogs]);
 
-  // Helper untuk mengekstrak akhiran topik MQTT untuk membedakan sensor dengan nama sama
-  const getTopicSuffix = (topic: string) => {
-    if (!topic) return '';
-    const parts = topic.split('/');
-    return parts[parts.length - 1];
-  };
+  // Menggunakan useMemo agar referensi array stabil dan tidak memicu efek rekursif
+  const availableSensors = useMemo(() => {
+    const targetComponents = selectedDevice
+      ? selectedDevice.components
+      : devices.flatMap((d) => d.components);
 
-  const availableSensors = selectedDevice
-    ? selectedDevice.components
-        .filter((comp) => (comp.componentType || '').trim().toLowerCase() === 'sensor')
-        .map((comp) => ({
-          key: comp.mqttTopic,
-          displayName: `${comp.componentName} (${getTopicSuffix(comp.mqttTopic)})`
-        }))
-    : devices.flatMap((d) =>
-        d.components
-          .filter((comp) => (comp.componentType || '').trim().toLowerCase() === 'sensor')
-          .map((comp) => ({
-            key: comp.mqttTopic,
-            displayName: `${comp.componentName} (${getTopicSuffix(comp.mqttTopic)})`
-          }))
-      );
+    return targetComponents
+      .filter((comp) => getComponentType(comp) === 'sensor')
+      .map((comp) => ({
+        key: getMqttTopic(comp),
+        displayName: `${comp.componentName} (${getTopicSuffix(getMqttTopic(comp))})`
+      }));
+  }, [devices, selectedDevice]);
 
-  // Reset filter komponen jika komponen yang sedang dipilih tidak ada di perangkat yang baru dipilih
+  // Sinkronisasi reset filter komponen hanya jika komponen yang dipilih hilang dari daftar pasang
   useEffect(() => {
-    if (selectedComponentFilter !== 'all' && !availableSensors.some(s => s.key === selectedComponentFilter)) {
+    if (selectedComponentFilter !== 'all' && !availableSensors.some((s) => s.key === selectedComponentFilter)) {
       setSelectedComponentFilter('all');
     }
   }, [availableSensors, selectedComponentFilter]);
 
-  const generateChartData = () => {
-    const chartLogSource = filteredLogs.filter(log => {
-      const type = (log.componentType || (log as any).componenttype || '').trim().toLowerCase();
-      const topic = log.mqttTopic || (log as any).mqtttopic || '';
-      return type === 'sensor' && (selectedComponentFilter === 'all' || topic === selectedComponentFilter);
+  // Kalkulasi data grafik yang di-memoize untuk efisiensi beban CPU render
+  const chartData = useMemo(() => {
+    const chartLogSource = filteredLogs.filter((log) => {
+      return getComponentType(log) === 'sensor' && (selectedComponentFilter === 'all' || getMqttTopic(log) === selectedComponentFilter);
     });
 
     const chronologicalLogs = [...chartLogSource].reverse();
@@ -177,17 +203,29 @@ export default function SmartIoTPage() {
         groupByTime[timeStr] = { time: timeStr };
       }
 
-      const topic = log.mqttTopic || (log as any).mqtttopic || '';
+      const topic = getMqttTopic(log);
       groupByTime[timeStr][topic] = isNaN(Number(log.value)) ? 0 : Number(log.value);
     });
 
     return Object.values(groupByTime);
-  };
+  }, [filteredLogs, selectedComponentFilter]);
 
-  const chartData = generateChartData();
   const deviceCount = devices.length;
-  const sensorCount = devices.reduce((sum, device) => sum + device.components.filter((comp) => (comp.componentType || '').trim().toLowerCase() === 'sensor').length, 0);
-  const lastSynced = logs[0]?.recorded_at ? new Date(logs[0].recorded_at.includes(' ') && !logs[0].recorded_at.includes('T') ? logs[0].recorded_at.replace(' ', 'T') : logs[0].recorded_at).toLocaleString('id-ID') : 'Belum ada data';
+
+  const sensorCount = useMemo(() => {
+    return devices.reduce(
+      (sum, device) => sum + device.components.filter((comp) => getComponentType(comp) === 'sensor').length,
+      0
+    );
+  }, [devices]);
+
+  const lastSynced = useMemo(() => {
+    if (!isMounted || !logs[0]?.recorded_at) return 'Belum ada data';
+    const safeStr = logs[0].recorded_at.includes(' ') && !logs[0].recorded_at.includes('T')
+      ? logs[0].recorded_at.replace(' ', 'T')
+      : logs[0].recorded_at;
+    return new Date(safeStr).toLocaleString('id-ID');
+  }, [logs, isMounted]);
 
   return (
     <div className="space-y-6 text-slate-100">
@@ -244,7 +282,6 @@ export default function SmartIoTPage() {
           }}
           className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-slate-200 font-medium focus:outline-none focus:border-cyan-500"
         >
-          <option value="">-- Tampilkan Semua Perangkat --</option>
           {devices.map((device) => (
             <option key={device.id} value={device.id}>
               {device.deviceCode} ({device.boxName || 'Tanpa Nama Unit'})
@@ -289,8 +326,7 @@ export default function SmartIoTPage() {
                 : "Tidak ada data riwayat aktivitas sensor fungsional yang tersedia untuk dirender pada alat ini."}
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              {/* SOLUSI ERROR 2: Berikan 'key' unik berbasis ID device agar Recharts merender ulang struktur garis baru */}
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart key={selectedDeviceId ?? 'all'} data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                 <XAxis dataKey="time" stroke="#64748b" style={{ fontSize: '11px' }} />
@@ -301,7 +337,6 @@ export default function SmartIoTPage() {
                 />
                 <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
 
-                {/* SOLUSI ERROR 2: Ditambahkan `connectNulls={true}` agar garis sensor tidak patah/hilang akibat jeda transmisi log */}
                 {selectedComponentFilter === 'all' ? (
                   availableSensors.map((sensor, idx) => (
                     <Line
@@ -319,7 +354,7 @@ export default function SmartIoTPage() {
                   <Line
                     type="monotone"
                     dataKey={selectedComponentFilter}
-                    name={availableSensors.find(s => s.key === selectedComponentFilter)?.displayName || selectedComponentFilter}
+                    name={availableSensors.find((s) => s.key === selectedComponentFilter)?.displayName || selectedComponentFilter}
                     connectNulls={true}
                     stroke="#06b6d4"
                     strokeWidth={2.5}
@@ -332,7 +367,7 @@ export default function SmartIoTPage() {
         </div>
       </div>
 
-      {/* Bagian Kompartemen Detail Informasi & Switch */}
+      {/* Detail Informasi & Switch */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
           <div>
@@ -344,14 +379,14 @@ export default function SmartIoTPage() {
             <div className="rounded-xl border border-dashed border-slate-800 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
               Silakan pilih unit perangkat di bagian atas untuk melihat kondisi detail parameter sensor secara berkala.
             </div>
-          ) : selectedDevice.components.filter((c) => (c.componentType || '').trim().toLowerCase() === 'sensor').length === 0 ? (
+          ) : selectedDevice.components.filter((c) => getComponentType(c) === 'sensor').length === 0 ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-sm text-slate-400">
               Tidak ada komponen sensor ukur yang tersemat pada unit ini.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {selectedDevice.components
-                .filter((component) => (component.componentType || '').trim().toLowerCase() === 'sensor')
+                .filter((component) => getComponentType(component) === 'sensor')
                 .map((component) => (
                   <div key={component.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex flex-col justify-between space-y-3">
                     <div className="flex justify-between items-start">
@@ -381,14 +416,14 @@ export default function SmartIoTPage() {
             <p className="text-xs text-slate-400">Tombol operasional untuk memicu status on/off perangkat keras.</p>
           </div>
 
-          {!selectedDevice || selectedDevice.components.filter((c) => (c.componentType || '').trim().toLowerCase() === 'actuator').length === 0 ? (
+          {!selectedDevice || selectedDevice.components.filter((c) => getComponentType(c) === 'actuator').length === 0 ? (
             <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-5 text-center text-xs text-slate-500">
               Pilih perangkat dengan fungsi saklar untuk mengaktifkan panel kendali ini.
             </div>
           ) : (
             <div className="space-y-2">
               {selectedDevice.components
-                .filter((component) => (component.componentType || '').trim().toLowerCase() === 'actuator')
+                .filter((component) => getComponentType(component) === 'actuator')
                 .map((component) => (
                   <div key={component.id} className="flex items-center justify-between gap-4 rounded-xl border border-slate-800 bg-slate-950 p-3.5 pl-4">
                     <div>
@@ -440,14 +475,16 @@ export default function SmartIoTPage() {
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-slate-500">Memuat log telemetri...</td>
                 </tr>
-              ) : filteredLogs.length === 0 ? (
+                // 1. Ubah pengecekan dari filteredLogs ke tableLogs
+              ) : tableLogs.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="py-6 text-center text-slate-500">
                     Belum ada riwayat aktivitas yang cocok dengan kriteria.
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => {
+                // 2. Ubah map dari filteredLogs ke tableLogs
+                tableLogs.map((log) => {
                   const safeLogDate = log.recorded_at.includes(' ') && !log.recorded_at.includes('T')
                     ? log.recorded_at.replace(' ', 'T')
                     : log.recorded_at;
