@@ -164,22 +164,55 @@ export default function LandingPage() {
         @keyframes blink {
           50% { border-color: transparent; }
         }
+
+        @keyframes slideStep {
+          0%, 16% { transform: translateX(0); }
+          20%, 36% { transform: translateX(-10%); }
+          40%, 56% { transform: translateX(-20%); }
+          60%, 76% { transform: translateX(-30%); }
+          80%, 96% { transform: translateX(-40%); }
+          100% { transform: translateX(-50%); }
+        }
+
+        .animate-slide-step {
+          animation: slideStep 10s infinite;
+        }
       `}</style>
 
       {/* TRUSTED BY */}
-      <section className="py-10 border-y border-slate-800">
-        <div className="max-w-6xl mx-auto px-6">
-          <p className="text-center text-slate-500 text-sm mb-8 uppercase tracking-widest">
-            Trusted by innovative businesses
+      <section className="py-4 bg-[#0b132b] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center gap-8">
+          
+          {/* Teks Sejajar di Samping */}
+          <p className="text-slate-500 text-sm uppercase tracking-widest font-medium whitespace-nowrap shrink-0">
+            Telah dipercaya oleh:
           </p>
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 text-center text-slate-500 font-semibold">
-            <div>AGRO TECH</div>
-            <div>SMART FARM</div>
-            <div>LOGISTICS ID</div>
-            <div>TRACE CORP</div>
-            <div>FOODCHAIN</div>
+          {/* Marquee Container (Logo Bergeser) */}
+          <div className="relative flex overflow-hidden w-full [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+            <div className="flex animate-slide-step w-max">
+              {[0, 1].map((block) => (
+                <div key={block} className="flex gap-16 shrink-0 items-center pr-16" aria-hidden={block === 1}>
+                  <div className="w-[150px] flex justify-center">
+                    <Image src="/logoelectra.png" alt="Agro Tech" width={80} height={20} className="object-contain opacity-50 hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="w-[12x0px] flex justify-center">
+                    <Image src="/agrotech.png" alt="Smart Farm" width={80} height={20} className="object-contain opacity-50 hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="w-[150px] flex justify-center">
+                    <Image src="/eratani.png" alt="Logistics ID" width={80} height={20} className="object-contain opacity-50 hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="w-[150px] flex justify-center">
+                    <Image src="/habibigarden.png" alt="Trace Corp" width={80} height={20} className="object-contain opacity-50 hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="w-[150px] flex justify-center">
+                    <Image src="/logomonocrom.png" alt="Foodchain" width={80} height={20} className="object-contain opacity-50 hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
         </div>
       </section>
 
