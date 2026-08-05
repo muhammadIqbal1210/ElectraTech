@@ -34,21 +34,12 @@ export default function DashboardPenakar() {
       .catch(() => setLatestIot(null));
   }, []);
 
-  // Data dummy batch pemeliharaan untuk keperluan slicing UI hulu
-  const activeBatches = [
-    { id: 'BATCH-B092', varietas: 'Cabai Rawit Merah', fase: 'Penyemaian (H-12)', suhu: '26.2°C', status: 'Optimal' },
-    { id: 'BATCH-B095', varietas: 'Tomat Hibrida F1', fase: 'Pertumbuhan (H-24)', suhu: '25.8°C', status: 'Butuh Nutrisi' },
-    { id: 'BATCH-B101', varietas: 'Bawang Merah Lokananta', fase: 'Karantina Aklimatisasi', suhu: '27.1°C', status: 'Optimal' },
-  ];
-
-  const displayedBatches = apiBatches.length > 0
-    ? apiBatches.map((batch) => ({
-        id: batch.id,
-        varietas: batch.variety,
-        fase: batch.phase,
-        status: batch.health_status === 'SEHAT' ? 'Optimal' : batch.health_status,
-      }))
-    : activeBatches;
+  const displayedBatches = apiBatches.map((batch) => ({
+    id: batch.id,
+    varietas: batch.variety,
+    fase: batch.phase,
+    status: batch.health_status === 'SEHAT' ? 'Optimal' : batch.health_status,
+  }));
 
   return (
     <div className="space-y-8">
@@ -73,8 +64,8 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Suhu Ruang Semai</p>
-            <p className="text-2xl font-extrabold text-orange-400 font-mono">{latestIot?.temperature_c || '26.5'} C</p>
-            <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● Status Stabil</p>
+            <p className="text-2xl font-extrabold text-orange-400 font-mono">{latestIot?.temperature_c || '-'} C</p>
+            <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● Status {latestIot ? 'Stabil' : 'Tidak Diketahui'}</p>
           </div>
           <div className="p-3 bg-orange-500/10 rounded-xl text-orange-400"><Thermometer className="w-6 h-6" /></div>
         </div>
@@ -83,8 +74,8 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Kelembapan Tanah</p>
-            <p className="text-2xl font-extrabold text-cyan-400 font-mono">{latestIot?.humidity_percent || '78'} %</p>
-            <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● Kandungan Air Cukup</p>
+            <p className="text-2xl font-extrabold text-cyan-400 font-mono">{latestIot?.humidity_percent || '-'} %</p>
+            <p className="text-[10px] text-emerald-400 flex items-center gap-0.5">● {latestIot ? 'Kandungan Air Cukup' : 'Data Tidak Tersedia'}</p>
           </div>
           <div className="p-3 bg-cyan-500/10 rounded-xl text-cyan-400"><Droplets className="w-6 h-6" /></div>
         </div>
@@ -93,8 +84,8 @@ export default function DashboardPenakar() {
         <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Intensitas Cahaya</p>
-            <p className="text-2xl font-extrabold text-yellow-400 font-mono">{latestIot?.light_lux || '420'} Lux</p>
-            <p className="text-[10px] text-amber-400 flex items-center gap-0.5">● Fotosintesis Aktif</p>
+            <p className="text-2xl font-extrabold text-yellow-400 font-mono">{latestIot?.light_lux || '-'} Lux</p>
+            <p className="text-[10px] text-amber-400 flex items-center gap-0.5">● {latestIot ? 'Fotosintesis Aktif' : 'Data Tidak Tersedia'}</p>
           </div>
           <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400"><Sun className="w-6 h-6" /></div>
         </div>
