@@ -18,6 +18,7 @@ import {
   Route,
   ShieldCheck,
   Sprout,
+  User,
   Users,
 } from 'lucide-react';
 import { apiRequest, ApiUser, clearSession, getStoredUser, getToken, Role } from '@/lib/api';
@@ -30,8 +31,8 @@ const menuByRole = {
       { name: 'SmartIoT Control', href: '/produsen/smartiot', icon: Cpu },
       { name: 'Pendaftaran Batch', href: '/produsen/batch/create', icon: FolderPlus },
       { name: 'Manajemen Budidaya', href: '/produsen/budidaya/create', icon: Sprout },
-      { name: 'Tracking Benih', href: '/produsen/tracking', icon: MapPinned },
       { name: 'QR Distribusi', href: '/produsen/qr', icon: QrCode },
+      { name: 'Tracking Benih', href: '/produsen/tracking', icon: MapPinned },
       { name: 'AI ElectraAgent', href: '/produsen/agen', icon: Bot },
     ],
   },
@@ -129,6 +130,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
+  const getInitial = (name: string | undefined) => {
+    if (!name) return 'U';
+    return name.charAt(0).toUpperCase();
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100 font-sans">
@@ -165,30 +170,31 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         <div className="space-y-3">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
-          >
-            <LogOut className="w-4 h-4" />
-            Keluar Sistem
-          </button>
+          {/* Profil Pengguna  */}
+          <div className="flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-400 bg-slate-800 rounded-xl">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                <span className="text-xs font-semibold text-slate-400">
+                  {getInitial(user?.name)}
+                </span>
+              </div>
+              <span className="text-xs font-semibold text-slate-400">
+                {user ? `${user.name}` : menu.nodeLabel}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="p-2 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+              title="Keluar Sistem"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </aside>
 
       <main className="flex-1 h-full bg-slate-950 overflow-y-auto">
-        <header className="h-16 border-b border-slate-800/60 bg-slate-900/20 backdrop-blur-md flex items-center justify-between px-8">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <Route className="h-4 w-4" />
-            <span>{pathname}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-xs font-semibold text-slate-400">
-              {user ? `${user.name} - ${user.role}` : menu.nodeLabel}
-            </span>
-          </div>
-        </header>
 
         <div className="p-8">{children}</div>
       </main>
