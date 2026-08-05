@@ -8,6 +8,7 @@ const adminRoutes = require('./routes/admin.routes');
 const batchRoutes = require('./routes/batch.routes');
 const iotRoutes = require('./routes/iot.routes');
 const trackingRoutes = require('./routes/tracking.routes');
+const agentRoutes = require('./routes/agent.route');
 const { startMqttBridge } = require('./services/mqtt.service');
 const { errorHandler, notFoundHandler } = require('./utils/http');
 
@@ -34,6 +35,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/iot', iotRoutes);
 app.use('/api/tracking', trackingRoutes);
+app.use('/api/agent', agentRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
