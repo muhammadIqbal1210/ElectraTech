@@ -9,6 +9,7 @@ const batchRoutes = require('./routes/batch.routes');
 const iotRoutes = require('./routes/iot.routes');
 const trackingRoutes = require('./routes/tracking.routes');
 const agentRoutes = require('./routes/agent.route');
+const verifyRoutes = require('./routes/verify.routes');
 const { startMqttBridge } = require('./services/mqtt.service');
 const { errorHandler, notFoundHandler } = require('./utils/http');
 
@@ -30,6 +31,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
+app.use('/api/verify', verifyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/batches', batchRoutes);
