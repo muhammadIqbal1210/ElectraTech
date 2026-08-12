@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS package_tracking (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE devices (
+CREATE TABLE IF NOT EXISTS devices (
     id BIGSERIAL PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES users(id),
     device_code VARCHAR(100) UNIQUE NOT NULL,
@@ -87,7 +87,7 @@ CREATE TABLE devices (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE device_components (
+CREATE TABLE IF NOT EXISTS device_components (
     id BIGSERIAL PRIMARY KEY,
     device_id BIGINT NOT NULL
         REFERENCES devices(id)
@@ -114,7 +114,7 @@ CREATE TABLE device_components (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE iot_logs (
+CREATE TABLE IF NOT EXISTS iot_logs (
     id BIGSERIAL PRIMARY KEY,
     component_id BIGINT
         REFERENCES device_components(id)
@@ -124,7 +124,7 @@ CREATE TABLE iot_logs (
     recorded_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE device_commands (
+CREATE TABLE IF NOT EXISTS device_commands (
     id BIGSERIAL PRIMARY KEY,
     component_id BIGINT NOT NULL
         REFERENCES device_components(id)
@@ -145,7 +145,7 @@ CREATE TABLE device_commands (
     executed_at TIMESTAMPTZ
 );
 
-CREATE TABLE device_configuration_logs (
+CREATE TABLE IF NOT EXISTS device_configuration_logs (
     id BIGSERIAL PRIMARY KEY,
     device_id BIGINT NOT NULL
         REFERENCES devices(id)
