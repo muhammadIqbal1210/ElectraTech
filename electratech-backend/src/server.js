@@ -10,6 +10,9 @@ const iotRoutes = require('./routes/iot.routes');
 const trackingRoutes = require('./routes/tracking.routes');
 const agentRoutes = require('./routes/agent.route');
 const verifyRoutes = require('./routes/verify.routes');
+const path = require('path');
+const blogRoutes = require('./routes/blog.routes');
+const uploadRoutes = require('./routes/upload.routes');
 const { startMqttBridge } = require('./services/mqtt.service');
 const { errorHandler, notFoundHandler } = require('./utils/http');
 
@@ -20,7 +23,8 @@ app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
 }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/health', (_req, res) => {
   res.json({
@@ -38,6 +42,8 @@ app.use('/api/batches', batchRoutes);
 app.use('/api/iot', iotRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/agent', agentRoutes);
+app.use('/api', blogRoutes);
+app.use('/api', uploadRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
