@@ -35,6 +35,86 @@ const { refreshMqttSubscriptions } = require('../services/mqtt.service');
     res.json({ ok: true, data: result.rows });
   }));
 
+  router.get('/dashboard-stats', asyncHandler(async (_req, res) => {
+    const [
+      usersCount,
+      usersByRole,
+      batchesCount,
+      shipmentsCount,
+      blogsCount,
+      recentBatchLogs,
+      recentTrackingLogs,
+      devicesCount
+    ] = await Promise.all([
+      pool.query(`select count(*) as total from users`),
+      pool.query(`select role, count(*) as total from users group by role`),
+      pool.query(`select count(*) as total from batches`),
+      pool.query(`select count(*) as total from shipments`),
+      pool.query(`select count(*) as total from blogs`),
+      pool.query(`
+        select bl.id, bl.created_at as time, u.name as actor, 
+               ('Memindahkan batch ' || b.public_id || ' ke fase ' || bl.to_phase) as event,
+               'Terverifikasi' as status
+        from batch_logs bl
+        join users u on u.id = bl.created_by
+        join batches b on b.id = bl.batch_id
+        order by bl.created_at desc limit 5
+      `),
+      pool.query(`
+        select pt.id, pt.recorded_at as time, u.name as actor,
+               ('Check-in resi ' || pt.receipt_number || ' - ' || pt.cargo_condition) as event,
+               pt.status as status
+        from package_tracking pt
+        join users u on u.id = pt.courier_id
+        order by pt.recorded_at desc limit 5
+      `),
+      pool.query(`select count(*) as total from devices`)
+    ]);
+
+    const rolesMap = {};
+    usersByRole.rows.forEach(r => {
+      rolesMap[r.role] = parseInt(r.total, 10);
+    });
+
+    const totalUsers = parseInt(usersCount.rows[0].total, 10);
+    const totalBatches = parseInt(batchesCount.rows[0].total, 10);
+    const totalShipments = parseInt(shipmentsCount.rows[0].total, 10);
+    const totalBlogs = parseInt(blogsCount.rows[0].total, 10);
+    const totalDevices = parseInt(devicesCount.rows[0].total, 10);
+
+    const mergedActivities = [
+      ...recentBatchLogs.rows.map(r => ({
+        time: new Date(r.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        actor: r.actor,
+        event: r.event,
+        status: r.status,
+        rawTime: new Date(r.time)
+      })),
+      ...recentTrackingLogs.rows.map(r => ({
+        time: new Date(r.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        actor: r.actor,
+        event: r.event,
+        status: r.status,
+        rawTime: new Date(r.time)
+      }))
+    ].sort((a, b) => b.rawTime - a.rawTime).slice(0, 5);
+
+    res.json({
+      ok: true,
+      data: {
+        metrics: {
+          totalUsers,
+          usersDetail: `${rolesMap['PRODUSEN'] || 0} penakar, ${rolesMap['KURIR'] || 0} kurir, ${rolesMap['ADMIN'] || 0} admin`,
+          totalBatches,
+          totalShipments,
+          totalBlogs,
+          totalDevices
+        },
+        activities: mergedActivities
+      }
+    });
+  }));
+
   router.post('/users', asyncHandler(async (req, res) => {
     const { publicId, name, username, password, role, status = 'ACTIVE' } = req.body;
 
