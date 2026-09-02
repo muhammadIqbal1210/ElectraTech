@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../config/db');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const { asyncHandler, createError } = require('../utils/http');
+const { recordToBlockchain, isBlockchainConfigured } = require('../services/blockchain.service');
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ function mapShipment(row) {
     createdAt: row.created_at,
     acceptedAt: row.accepted_at,
     deliveredAt: row.delivered_at,
+    blockchainTxHash: row.blockchain_tx_hash || null,
   };
 }
 
@@ -43,6 +45,14 @@ function getShipmentAccessClause(req, alias = 's', paramIndex = 1, includeUnassi
   };
 }
 
+async function recordShipmentBlockchainEvent(batchId, actionStatus, timestampStr = new Date().toISOString()) {
+  if (!isBlockchainConfigured()) {
+    return { success: false, recorded: false, reason: 'BLOCKCHAIN_NOT_CONFIGURED' };
+  }
+
+  return recordToBlockchain(batchId, actionStatus, timestampStr);
+}
+
 router.get('/shipments', asyncHandler(async (req, res) => {
   const { status } = req.query;
   const params = [status || null];
@@ -51,7 +61,7 @@ router.get('/shipments', asyncHandler(async (req, res) => {
   const result = await pool.query(
     `select s.id, s.receipt_number, b.public_id as batch_id, b.variety, b.generation,
             s.producer_id, s.courier_id, producer.name as producer_name, courier.name as courier_name,
-            s.destination, s.package_quantity, s.status, s.notes,
+            s.destination, s.package_quantity, s.status, s.notes, s.blockchain_tx_hash,
             s.created_at, s.accepted_at, s.delivered_at
      from shipments s
      join batches b on b.id = s.batch_id
@@ -63,14 +73,14 @@ router.get('/shipments', asyncHandler(async (req, res) => {
     [...params, ...access.params],
   );
 
-  res.json({ ok: true, data: result.rows.map(mapShipment) });
+  res.json({ ok: true, data: result.rows.map(mapShipment), blockchainConfigured: isBlockchainConfigured() });
 }));
 
 router.get('/shipments/:receiptNumber', asyncHandler(async (req, res) => {
   const result = await pool.query(
     `select s.id, s.receipt_number, b.public_id as batch_id, b.variety, b.generation,
             s.producer_id, s.courier_id, producer.name as producer_name, courier.name as courier_name,
-            s.destination, s.package_quantity, s.status, s.notes,
+            s.destination, s.package_quantity, s.status, s.notes, s.blockchain_tx_hash,
             s.created_at, s.accepted_at, s.delivered_at
      from shipments s
      join batches b on b.id = s.batch_id
@@ -95,7 +105,7 @@ router.get('/shipments/:receiptNumber', asyncHandler(async (req, res) => {
     throw createError(403, 'Paket ini sedang ditangani kurir lain.');
   }
 
-  res.json({ ok: true, data: mapShipment(shipment) });
+  res.json({ ok: true, data: mapShipment(shipment), blockchainConfigured: isBlockchainConfigured() });
 }));
 
 router.post('/shipments', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (req, res) => {
@@ -111,7 +121,7 @@ router.post('/shipments', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (
      from batches b
      where b.public_id = $1
        and ($5::text = 'ADMIN' or b.producer_id = $6)
-     returning id, receipt_number, destination, package_quantity, status, notes, created_at`,
+     returning id, receipt_number, destination, package_quantity, status, notes, created_at, batch_id`,
     [batchId, destination, packageQuantity, notes || null, req.user.role, req.user.id],
   );
 
@@ -119,23 +129,102 @@ router.post('/shipments', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (
     throw createError(404, 'Batch tidak ditemukan atau bukan milik user login.');
   }
 
-  res.status(201).json({ ok: true, data: result.rows[0] });
+  const shipment = result.rows[0];
+  const bcResult = await recordShipmentBlockchainEvent(batchId, `SHIPMENT_CREATED:${shipment.receipt_number}`);
+
+  if (bcResult.success) {
+    await pool.query(
+      `update shipments set blockchain_tx_hash = $1 where id = $2`,
+      [bcResult.transactionHash, shipment.id],
+    );
+  }
+
+  res.status(201).json({
+    ok: true,
+    data: {
+      ...shipment,
+      blockchain: {
+        configured: isBlockchainConfigured(),
+        recorded: bcResult.success,
+        txHash: bcResult.transactionHash,
+        reason: bcResult.reason || null,
+      },
+    },
+  });
 }));
 
 router.post('/shipments/:receiptNumber/accept', requireRole('ADMIN', 'KURIR'), asyncHandler(async (req, res) => {
-  const result = await pool.query(
-    `update shipments
-     set courier_id = $1, status = 'ACCEPTED_BY_COURIER', accepted_at = coalesce(accepted_at, now()), updated_at = now()
-     where receipt_number = $2 and status = 'READY_FOR_PICKUP' and courier_id is null
-     returning receipt_number, status, accepted_at`,
-    [req.user.id, req.params.receiptNumber],
-  );
+  const client = await pool.connect();
 
-  if (!result.rows[0]) {
-    throw createError(409, 'Paket tidak tersedia untuk diterima atau sudah diterima kurir lain.');
+  try {
+    await client.query('BEGIN');
+
+    const shipmentResult = await client.query(
+      `update shipments
+       set courier_id = $1,
+           status = 'ACCEPTED_BY_COURIER',
+           accepted_at = coalesce(accepted_at, now()),
+           updated_at = now()
+       where receipt_number = $2 and status = 'READY_FOR_PICKUP' and courier_id is null
+       returning id, batch_id, receipt_number, status, accepted_at`,
+      [req.user.id, req.params.receiptNumber],
+    );
+
+    const shipment = shipmentResult.rows[0];
+
+    if (!shipment) {
+      throw createError(409, 'Paket tidak tersedia untuk diterima atau sudah diterima kurir lain.');
+    }
+
+    await client.query(
+      `insert into package_tracking (
+         receipt_number, batch_id, courier_id, status,
+         cargo_condition, notes, recorded_at
+       )
+       values ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        shipment.receipt_number,
+        shipment.batch_id,
+        req.user.id,
+        'Diterima Kurir',
+        'GOOD',
+        'Paket berhasil diterima oleh kurir.',
+        shipment.accepted_at,
+      ],
+    );
+
+    await client.query('COMMIT');
+
+    const batchPublicResult = await pool.query(
+      `select public_id from batches where id = $1 limit 1`,
+      [shipment.batch_id],
+    );
+    const batchPublicId = batchPublicResult.rows[0]?.public_id;
+    const bcResult = await recordShipmentBlockchainEvent(batchPublicId, `SHIPMENT_ACCEPTED:${shipment.receipt_number}`);
+
+    if (bcResult.success && batchPublicId) {
+      await pool.query(
+        `update shipments set blockchain_tx_hash = $1 where id = $2`,
+        [bcResult.transactionHash, shipment.id],
+      );
+    }
+
+    res.json({
+      ok: true,
+      data: shipment,
+      blockchain: {
+        configured: isBlockchainConfigured(),
+        recorded: bcResult.success,
+        txHash: bcResult.transactionHash,
+        reason: bcResult.reason || null,
+      },
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
   }
-
-  res.json({ ok: true, data: result.rows[0] });
 }));
 
 router.get('/', asyncHandler(async (req, res) => {
@@ -145,7 +234,7 @@ router.get('/', asyncHandler(async (req, res) => {
   const result = await pool.query(
     `select pt.id, pt.receipt_number, b.public_id as batch_id, u.name as courier_name,
             pt.status, pt.latitude, pt.longitude, pt.cargo_condition, pt.container_temperature_c,
-            pt.notes, pt.recorded_at
+            pt.notes, pt.blockchain_tx_hash, pt.recorded_at
      from package_tracking pt
      join batches b on b.id = pt.batch_id
      join shipments s on s.receipt_number = pt.receipt_number
@@ -156,7 +245,7 @@ router.get('/', asyncHandler(async (req, res) => {
     [receiptNumber || null, ...access.params],
   );
 
-  res.json({ ok: true, data: result.rows });
+  res.json({ ok: true, data: result.rows, blockchainConfigured: isBlockchainConfigured() });
 }));
 
 router.post('/checkins', requireRole('ADMIN', 'KURIR'), asyncHandler(async (req, res) => {
@@ -198,39 +287,70 @@ router.post('/checkins', requireRole('ADMIN', 'KURIR'), asyncHandler(async (req,
     throw createError(400, 'Batch ID tidak cocok dengan nomor resi paket.');
   }
 
-  const result = await pool.query(
-    `insert into package_tracking (
-       receipt_number, batch_id, courier_id, status, latitude, longitude,
-       cargo_condition, container_temperature_c, notes
-     )
-     values ($1, (select id from batches where public_id = $2), $3, $4, $5, $6, $7, $8, $9)
-     returning id, receipt_number, status, latitude, longitude, cargo_condition,
-               container_temperature_c, notes, recorded_at`,
-    [
-      receiptNumber,
-      batchId,
-      req.user.id,
-      status,
-      latitude || null,
-      longitude || null,
-      cargoCondition,
-      containerTemperatureC || null,
-      notes || null,
-    ],
-  );
+  const client = await pool.connect();
 
-  const nextShipmentStatus = status === 'Diserahkan ke penerima' ? 'DELIVERED' : 'IN_TRANSIT';
+  try {
+    await client.query('BEGIN');
 
-  await pool.query(
-    `update shipments
-     set status = $1,
-         delivered_at = case when $1 = 'DELIVERED' then coalesce(delivered_at, now()) else delivered_at end,
-         updated_at = now()
-     where receipt_number = $2`,
-    [nextShipmentStatus, receiptNumber],
-  );
+    const result = await client.query(
+      `insert into package_tracking (
+         receipt_number, batch_id, courier_id, status, latitude, longitude,
+         cargo_condition, container_temperature_c, notes
+       )
+       values ($1, (select id from batches where public_id = $2), $3, $4, $5, $6, $7, $8, $9)
+       returning id, receipt_number, status, latitude, longitude, cargo_condition,
+                 container_temperature_c, notes, recorded_at`,
+      [
+        receiptNumber,
+        batchId,
+        req.user.id,
+        status,
+        latitude || null,
+        longitude || null,
+        cargoCondition,
+        containerTemperatureC || null,
+        notes || null,
+      ],
+    );
 
-  res.status(201).json({ ok: true, data: result.rows[0] });
+    const nextShipmentStatus = status === 'Diserahkan ke penerima' ? 'DELIVERED' : 'IN_TRANSIT';
+
+    await client.query(
+      `update shipments
+       set status = $1,
+           delivered_at = case when $1 = 'DELIVERED' then coalesce(delivered_at, now()) else delivered_at end,
+           updated_at = now()
+       where receipt_number = $2`,
+      [nextShipmentStatus, receiptNumber],
+    );
+
+    await client.query('COMMIT');
+
+    const bcResult = await recordShipmentBlockchainEvent(batchId, `PACKAGE_TRACKING:${status}:${receiptNumber}`);
+
+    if (bcResult.success) {
+      await pool.query(
+        `update package_tracking set blockchain_tx_hash = $1 where id = $2`,
+        [bcResult.transactionHash, result.rows[0].id],
+      );
+    }
+
+    res.status(201).json({
+      ok: true,
+      data: result.rows[0],
+      blockchain: {
+        configured: isBlockchainConfigured(),
+        recorded: bcResult.success,
+        txHash: bcResult.transactionHash,
+        reason: bcResult.reason || null,
+      },
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 module.exports = router;
