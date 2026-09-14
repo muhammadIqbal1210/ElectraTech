@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, ShieldCheck, Sprout, Truck, UserPlus, Users } from 'lucide-react';
+import { Pencil, ShieldCheck, Sprout, Truck, UserPlus, Users, X } from 'lucide-react';
 import { apiRequest, Role } from '@/lib/api';
 
 type UserRow = {
@@ -28,6 +28,7 @@ export default function AdminUsersPage() {
   const [editingUserId, setEditingUserId] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const roleStats = useMemo(() => [
     { label: 'Admin', value: users.filter((user) => user.role === 'ADMIN').length, icon: ShieldCheck, color: 'text-cyan-400' },
@@ -52,6 +53,21 @@ export default function AdminUsersPage() {
     void Promise.resolve().then(loadUsers);
   }, [loadUsers]);
 
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingUserId('');
+    setName('');
+    setUsername('');
+    setPassword('');
+    setRole('PRODUSEN');
+    setStatus('ACTIVE');
+  };
+
+  const openAddModal = () => {
+    closeModal();
+    setIsModalOpen(true);
+  };
+
   const handleCreateUser = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMessage('');
@@ -61,11 +77,7 @@ export default function AdminUsersPage() {
         method: 'POST',
         body: JSON.stringify({ name, username, password, role }),
       });
-      setName('');
-      setUsername('');
-      setPassword('');
-      setRole('PRODUSEN');
-      setStatus('ACTIVE');
+      closeModal();
       setMessage('User baru berhasil dibuat.');
       await loadUsers();
     } catch (err) {
@@ -80,17 +92,7 @@ export default function AdminUsersPage() {
     setPassword('');
     setRole(user.role);
     setStatus(user.status);
-    setMessage(`Mode edit aktif untuk ${user.name}.`);
-  };
-
-  const cancelEdit = () => {
-    setEditingUserId('');
-    setName('');
-    setUsername('');
-    setPassword('');
-    setRole('PRODUSEN');
-    setStatus('ACTIVE');
-    setMessage('');
+    setIsModalOpen(true);
   };
 
   const handleUpdateUser = async (event: FormEvent<HTMLFormElement>) => {
@@ -102,7 +104,7 @@ export default function AdminUsersPage() {
         method: 'PUT',
         body: JSON.stringify({ name, username, password: password || undefined, role, status }),
       });
-      cancelEdit();
+      closeModal();
       setMessage('User berhasil diperbarui.');
       await loadUsers();
     } catch (err) {
@@ -114,54 +116,131 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <Users className="h-6 w-6 text-cyan-400" />
+          <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-white">
             Manajemen User
           </h1>
           <p className="mt-1 text-sm text-slate-400">Kelola akses admin, penakar benih, dan kurir logistik.</p>
         </div>
+        <button
+          onClick={openAddModal}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-500"
+        >
+          <UserPlus className="h-4 w-4" />
+          Tambah User
+        </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {roleStats.map((stat) => {
-          const Icon = stat.icon;
-
           return (
             <div key={stat.label} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <Icon className={`h-5 w-5 ${stat.color}`} />
-              <p className="mt-4 font-mono text-3xl font-black">{stat.value}</p>
+              <p className="mt-4 text-3xl font-semibold text-white">{stat.value}</p>
               <p className="text-xs uppercase tracking-wider text-slate-500">{stat.label}</p>
             </div>
           );
         })}
       </div>
 
-      <form onSubmit={editingUserId ? handleUpdateUser : handleCreateUser} className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:grid-cols-[1fr_1fr_150px_150px_1fr_auto]">
-        <input value={name} onChange={(event) => setName(event.target.value)} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" placeholder="Nama lengkap" required />
-        <input value={username} onChange={(event) => setUsername(event.target.value)} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" placeholder="Username" required />
-        <select value={role} onChange={(event) => setRole(event.target.value as Role)} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500">
-          <option value="PRODUSEN">Penakar</option>
-          <option value="KURIR">Kurir</option>
-          <option value="ADMIN">Admin</option>
-        </select>
-        <select value={status} onChange={(event) => setStatus(event.target.value as 'ACTIVE' | 'REVIEW' | 'DISABLED')} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500">
-          <option value="ACTIVE">Aktif</option>
-          <option value="REVIEW">Ditinjau</option>
-          <option value="DISABLED">Nonaktif</option>
-        </select>
-        <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-cyan-500" placeholder={editingUserId ? 'Password baru opsional' : 'Password'} required={!editingUserId} />
-        <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-500">
-          {editingUserId ? <Pencil className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-          {editingUserId ? 'Simpan' : 'Tambah'}
-        </button>
-        {editingUserId && (
-          <button type="button" onClick={cancelEdit} className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:bg-slate-800 lg:col-start-6">
-            Batal
-          </button>
-        )}
-      </form>
+      {message && <p className="text-sm font-semibold text-cyan-300 bg-slate-900 border border-slate-800 p-3 rounded-xl">{message}</p>}
 
-      {message && <p className="text-sm font-semibold text-cyan-300">{message}</p>}
+      {/* Modal Form Tambah / Edit User */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                {editingUserId ? <Pencil className="h-5 w-5 text-cyan-400" /> : <UserPlus className="h-5 w-5 text-cyan-400" />}
+                {editingUserId ? 'Edit Data User' : 'Tambah User Baru'}
+              </h2>
+              <button onClick={closeModal} className="text-slate-400 hover:text-white transition">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={editingUserId ? handleUpdateUser : handleCreateUser} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Nama Lengkap</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+                  placeholder="Contoh: Ahmad Rizki"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">Username</label>
+                <input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+                  placeholder="ahmad123"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-400">Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as Role)}
+                    className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+                  >
+                    <option value="PRODUSEN">Penakar Benih</option>
+                    <option value="KURIR">Kurir</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-slate-400">Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as 'ACTIVE' | 'REVIEW' | 'DISABLED')}
+                    className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+                  >
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="REVIEW">Ditinjau</option>
+                    <option value="DISABLED">Nonaktif</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-400">
+                  {editingUserId ? 'Password Baru (Kosongkan jika tidak diubah)' : 'Password'}
+                </label>
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2.5 text-sm text-white outline-none focus:border-cyan-500"
+                  placeholder="******"
+                  required={!editingUserId}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:bg-slate-800"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-500"
+                >
+                  {editingUserId ? 'Simpan' : 'Tambah User'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
         <div className="overflow-x-auto">
