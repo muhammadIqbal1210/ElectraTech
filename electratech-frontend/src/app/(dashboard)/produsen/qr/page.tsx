@@ -177,9 +177,6 @@ export default function QrDistribusiProdusenPage() {
             </p>
           </div>
         </div>
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-300">
-          SIAP_DISTRIBUSI required
-        </div>
       </div>
 
       {message && <p className="text-sm font-semibold text-amber-300">{message}</p>}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { ToggleLeft, ToggleRight, Activity, Cpu, Wifi, Database, LineChart as ChartIcon, Layers } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Activity, Cpu, Wifi, Database, LineChart as ChartIcon, Layers, Download, Filter } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -54,10 +54,36 @@ export default function SmartIoTPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actuatorState, setActuatorState] = useState<Record<number, boolean>>({});
-  
+
   // Auto Mode States
   const [actuatorMode, setActuatorMode] = useState<Record<number, 'manual' | 'auto'>>({});
   const [autoConfig, setAutoConfig] = useState<Record<number, Array<{ id: string, sensorId: number | null, threshold: number | '', operator?: 'lebih_dari' | 'kurang_dari' }>>>({});
+
+  // Fungsi Export Log Telemetri ke CSV
+  const handleExportCSV = () => {
+    if (!logs || logs.length === 0) {
+      alert('Tidak ada data log telemetri untuk di-export.');
+      return;
+    }
+    const headers = ['ID', 'Waktu Catat', 'Kode Alat', 'Nama Komponen', 'Nilai Ukur', 'Ambang Batas'];
+    const rows = filteredLogs.map((log) => [
+      log.id,
+      `"${log.recorded_at}"`,
+      `"${log.deviceCode || ''}"`,
+      `"${log.componentName || ''}"`,
+      `"${log.value || ''}"`,
+      '"Optimal"'
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `telemetry_logs_${selectedDevice ? selectedDevice.deviceCode : 'all'}_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Proteksi Hydration Next.js
   const [isMounted, setIsMounted] = useState(false);
@@ -66,10 +92,10 @@ export default function SmartIoTPage() {
     const savedMode = localStorage.getItem('actuatorMode');
     const savedConfig = localStorage.getItem('autoConfig');
     if (savedMode) {
-      try { setActuatorMode(JSON.parse(savedMode)); } catch(e){}
+      try { setActuatorMode(JSON.parse(savedMode)); } catch (e) { }
     }
     if (savedConfig) {
-      try { setAutoConfig(JSON.parse(savedConfig)); } catch(e){}
+      try { setAutoConfig(JSON.parse(savedConfig)); } catch (e) { }
     }
   }, []);
 
@@ -224,13 +250,13 @@ export default function SmartIoTPage() {
       const actuatorId = Number(actuatorIdStr);
       const rules = autoConfig[actuatorId] || [];
       if (rules.length === 0) return;
-      
+
       let shouldBeOn = false;
       let hasValidRule = false;
 
       for (const rule of rules) {
         if (rule.sensorId === null || rule.threshold === '') continue;
-        
+
         let currentSensorValue: number | null = null;
         for (const device of devices) {
           const sensor = device.components.find(c => c.id === rule.sensorId);
@@ -239,13 +265,13 @@ export default function SmartIoTPage() {
             break;
           }
         }
-        
+
         if (currentSensorValue === null || isNaN(currentSensorValue)) continue;
         hasValidRule = true;
-        
+
         const thresholdNum = Number(rule.threshold);
         const operator = rule.operator || 'lebih_dari';
-        
+
         if (operator === 'lebih_dari' && currentSensorValue > thresholdNum) {
           shouldBeOn = true;
           break; // Jika salah satu sensor melewati batas, aktuator nyala
@@ -254,11 +280,11 @@ export default function SmartIoTPage() {
           break;
         }
       }
-      
+
       if (!hasValidRule) return;
-      
+
       const currentActuatorState = actuatorState[actuatorId] || false;
-      
+
       if (shouldBeOn && !currentActuatorState) {
         void handleAutoToggle(actuatorId, true);
       } else if (!shouldBeOn && currentActuatorState) {
@@ -352,50 +378,66 @@ export default function SmartIoTPage() {
 
   return (
     <div className="space-y-6 text-slate-100">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">SmartIoT Control & Monitor</h1>
-        <p className="text-sm text-slate-400 mt-1">Pantau parameter sensor alat penakar dan kendalikan aktuator secara langsung.</p>
+      {/* Header Halaman */}
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+          SmartIoT Control & Monitor
+        </h1>
+        <p className="text-sm text-slate-400 mt-1">
+          Pantau parameter sensor alat penakar dan kendalikan aktuator secara langsung.
+        </p>
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-rose-500/20 bg-rose-950/40 p-4 text-rose-300">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/40 p-4 text-rose-300 text-sm">
           {error}
         </div>
       )}
 
-      {/* Ringkasan Informasi Utama */}
+      {/* Ringkasan Informasi Utama (3 COLUMNS METRIC CARDS) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
-          <div className="flex items-center gap-3 text-slate-300">
+        {/* Card 1: Perangkat Terkoneksi */}
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
             <Wifi className="w-5 h-5" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Perangkat Terkoneksi</span>
           </div>
-          <p className="text-3xl font-bold">{deviceCount}</p>
-          <p className="text-xs text-slate-400">Total unit IoT yang aktif terdaftar.</p>
+          <div>
+            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Perangkat Terkoneksi</p>
+            <p className="text-2xl font-bold text-white mt-0.5">{deviceCount} Unit</p>
+            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">Total unit IoT aktif terdaftar</p>
+          </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
-          <div className="flex items-center gap-3 text-slate-300">
+        {/* Card 2: Parameter Sensor */}
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
             <Database className="w-5 h-5" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Parameter Sensor</span>
           </div>
-          <p className="text-3xl font-bold">{sensorCount}</p>
-          <p className="text-xs text-slate-400">Indikator penakar yang sedang dipantau.</p>
+          <div>
+            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Parameter Sensor</p>
+            <p className="text-2xl font-bold text-white mt-0.5">{sensorCount} Sensor</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Indikator penakar sedang dipantau</p>
+          </div>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-2">
-          <div className="flex items-center gap-3 text-slate-300">
+        {/* Card 3: Pembaruan Terakhir */}
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
             <Cpu className="w-5 h-5" />
-            <span className="text-xs font-semibold uppercase tracking-wider">Pembaruan Terakhir</span>
           </div>
-          <p className="text-sm font-medium text-slate-200 mt-2">{lastSynced}</p>
-          <p className="text-xs text-slate-500">Sinkronisasi log telemetri terbaru.</p>
+          <div>
+            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Pembaruan Terakhir</p>
+            <p className="text-sm font-semibold text-slate-200 mt-1">{lastSynced}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5">Sinkronisasi log telemetri terbaru</p>
+          </div>
         </div>
       </div>
 
       {/* Selector Pemilihan Perangkat */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-        <label className="block text-xs font-medium uppercase tracking-wider mb-2 text-slate-400">Pilih Unit Perangkat</label>
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
+        <label className="block text-xs font-semibold uppercase tracking-wider mb-2 text-slate-400">
+          Pilih Unit Perangkat
+        </label>
         <select
           value={selectedDeviceId ?? ''}
           onChange={(e) => {
@@ -403,7 +445,7 @@ export default function SmartIoTPage() {
             setSelectedDeviceId(val === '' ? null : Number(val));
             setSelectedComponentFilter('all');
           }}
-          className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-slate-200 font-normal focus:outline-none focus:border-cyan-500 cursor-pointer"
+          className="w-full rounded-xl border border-slate-800 bg-[#0A0D1B] p-3 text-sm text-slate-200 font-medium focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
         >
           {devices.map((device) => (
             <option key={device.id} value={device.id}>
@@ -414,13 +456,15 @@ export default function SmartIoTPage() {
       </div>
 
       {/* PANEL GRAFIK MONITORING */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div className="flex items-center gap-2.5">
-            <ChartIcon className="w-5 h-5 text-cyan-400" />
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+              <ChartIcon className="w-5 h-5" />
+            </div>
             <div>
-              <h3 className="font-bold text-sm uppercase tracking-wider">Grafik Riwayat Pengukuran Sensor</h3>
-              <p className="text-xs text-slate-400">Analisis tren fluktuasi nilai indikator penakar.</p>
+              <h3 className="font-bold text-sm text-white uppercase tracking-wider">Grafik Riwayat Pengukuran Sensor</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Analisis tren fluktuasi nilai indikator penakar.</p>
             </div>
           </div>
 
@@ -429,7 +473,7 @@ export default function SmartIoTPage() {
             <select
               value={selectedComponentFilter}
               onChange={(e) => setSelectedComponentFilter(e.target.value)}
-              className="rounded-lg border border-slate-800 bg-slate-950 p-2 text-xs text-slate-300 focus:outline-none"
+              className="rounded-xl border border-slate-800 bg-[#0A0D1B] px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all cursor-pointer"
             >
               <option value="all">Tampilkan Semua Sensor</option>
               {availableSensors.map((sensor) => (
@@ -442,10 +486,10 @@ export default function SmartIoTPage() {
         </div>
 
         {selectedComponentFilter === 'all' && availableSensors.length > 0 && (
-          <div className="flex flex-wrap items-center gap-4 pt-2 pb-2">
-            <span className="text-xs text-slate-500 font-medium">Tampilkan:</span>
+          <div className="flex flex-wrap items-center gap-4 pt-1 pb-1">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Tampilkan:</span>
             {availableSensors.map((sensor) => (
-              <label key={sensor.key} className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors">
+              <label key={sensor.key} className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer hover:text-white transition-colors bg-[#151B33]/60 px-2.5 py-1 rounded-lg border border-slate-800/60">
                 <input
                   type="checkbox"
                   checked={!hiddenSensors[sensor.key]}
@@ -455,13 +499,13 @@ export default function SmartIoTPage() {
                   }}
                   className="rounded border-slate-700 bg-slate-900 text-cyan-500 focus:ring-cyan-500 focus:ring-offset-slate-900 cursor-pointer"
                 />
-                {sensor.displayName}
+                <span className="font-medium">{sensor.displayName}</span>
               </label>
             ))}
           </div>
         )}
 
-        <div className="w-full h-64 min-h-[256px] pt-2">
+        <div className="w-full h-72 min-h-[280px] pt-2">
           {!isMounted || chartData.length === 0 ? (
             <div className="w-full h-full flex items-center justify-center text-slate-500 border border-dashed border-slate-800 rounded-xl text-sm text-center p-4">
               {!isMounted
@@ -470,15 +514,15 @@ export default function SmartIoTPage() {
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%" minWidth={250}>
-              <LineChart key={selectedDeviceId ?? 'all'} data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+              <LineChart key={selectedDeviceId ?? 'all'} data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.6} />
                 <XAxis dataKey="time" stroke="#64748b" style={{ fontSize: '11px' }} />
                 <YAxis stroke="#64748b" style={{ fontSize: '11px' }} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#020617', borderColor: '#334155', borderRadius: '10px' }}
+                  contentStyle={{ backgroundColor: '#0A0D1B', borderColor: '#1E293B', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}
                   labelStyle={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold' }}
                 />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '12px' }} />
 
                 {selectedComponentFilter === 'all' ? (
                   availableSensors.map((sensor, idx) => {
@@ -504,7 +548,7 @@ export default function SmartIoTPage() {
                     connectNulls={true}
                     stroke="#06b6d4"
                     strokeWidth={2.5}
-                    dot={{ r: 2 }}
+                    dot={{ r: 3, fill: '#06b6d4' }}
                   />
                 )}
               </LineChart>
@@ -515,18 +559,19 @@ export default function SmartIoTPage() {
 
       {/* Detail Informasi & Switch */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        {/* Sensor Metrics Column (2/3 width) */}
+        <div className="xl:col-span-2 bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
           <div>
-            <h2 className="text-base font-bold">Status Indikator Penakar</h2>
-            <p className="text-xs text-slate-400">Nilai metrik aktual yang sedang dibaca oleh modul sensor terpasang.</p>
+            <h2 className="text-base font-bold text-white tracking-tight">Status Indikator Penakar</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Nilai metrik aktual yang sedang dibaca oleh modul sensor terpasang.</p>
           </div>
 
           {!selectedDevice ? (
-            <div className="rounded-xl border border-dashed border-slate-800 bg-slate-950/40 p-6 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-dashed border-slate-800 bg-[#0A0D1B]/50 p-6 text-center text-sm text-slate-400">
               Silakan pilih unit perangkat di bagian atas untuk melihat kondisi detail parameter sensor secara berkala.
             </div>
           ) : selectedDevice.components.filter((c) => getComponentType(c) === 'sensor').length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-6 text-center text-sm text-slate-400">
+            <div className="rounded-xl border border-slate-800 bg-[#0A0D1B] p-6 text-center text-sm text-slate-400">
               Tidak ada komponen sensor ukur yang tersemat pada unit ini.
             </div>
           ) : (
@@ -534,18 +579,18 @@ export default function SmartIoTPage() {
               {selectedDevice.components
                 .filter((component) => getComponentType(component) === 'sensor')
                 .map((component) => (
-                  <div key={component.id} className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex flex-col justify-between space-y-3">
+                  <div key={component.id} className="rounded-xl border border-slate-800/80 bg-[#0A0D1B] p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-all">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-xs font-medium text-slate-400">Nama Indikator</p>
-                        <p className="text-md font-bold text-slate-200 mt-0.5">{component.componentName}</p>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Indikator</p>
+                        <p className="text-sm font-bold text-white mt-0.5">{component.componentName}</p>
                       </div>
-                      <span className="text-xs bg-slate-800 border border-slate-700 px-2 py-0.5 rounded font-medium text-slate-300">
+                      <span className="text-[11px] bg-[#151B33] border border-slate-700/70 px-2.5 py-0.5 rounded-md font-medium text-cyan-300">
                         {component.unit || component.dataType}
                       </span>
                     </div>
-                    <div className="bg-slate-900/80 p-3 rounded-lg border border-slate-800/60 flex items-baseline justify-between">
-                      <span className="text-xs text-slate-500">Kondisi Saat Ini:</span>
+                    <div className="bg-[#151B33]/60 p-3 rounded-lg border border-slate-800/60 flex items-baseline justify-between">
+                      <span className="text-xs text-slate-400 font-medium">Kondisi Saat Ini:</span>
                       <p className="text-xl font-bold text-emerald-400 tracking-tight">
                         {component.lastValue ?? '-'} <span className="text-xs font-normal text-slate-400">{component.unit || ''}</span>
                       </p>
@@ -556,14 +601,15 @@ export default function SmartIoTPage() {
           )}
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        {/* Actuator Switches Column (1/3 width) */}
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
           <div>
-            <h2 className="text-base font-bold">Saklar Kendali</h2>
-            <p className="text-xs text-slate-400">Tombol operasional untuk memicu status on/off perangkat keras.</p>
+            <h2 className="text-base font-bold text-white tracking-tight">Saklar Kendali</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Tombol operasional untuk memicu status on/off perangkat keras.</p>
           </div>
 
           {!selectedDevice || selectedDevice.components.filter((c) => getComponentType(c) === 'actuator').length === 0 ? (
-            <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-5 text-center text-xs text-slate-500">
+            <div className="rounded-xl border border-slate-800 bg-[#0A0D1B]/50 p-5 text-center text-xs text-slate-500">
               Pilih perangkat dengan fungsi saklar untuk mengaktifkan panel kendali ini.
             </div>
           ) : (
@@ -574,33 +620,33 @@ export default function SmartIoTPage() {
                   const mode = actuatorMode[component.id] || 'manual';
                   const rules = autoConfig[component.id] || [];
                   const validRulesCount = rules.filter(r => r.sensorId !== null && r.threshold !== '').length;
-                  
+
                   return (
-                    <div key={component.id} className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-slate-950 p-4">
+                    <div key={component.id} className="flex flex-col gap-3 rounded-xl border border-slate-800 bg-[#0A0D1B] p-4 shadow-sm">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-bold text-slate-200">{component.componentName}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm font-bold text-white">{component.componentName}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">
                             Status: <span className={actuatorState[component.id] ? "text-emerald-400 font-bold" : "text-slate-400 font-bold"}>{actuatorState[component.id] ? "ON" : "OFF"}</span>
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 bg-[#151B33] p-1 rounded-xl border border-slate-800">
                           <button
                             type="button"
                             onClick={() => setActuatorMode(prev => ({ ...prev, [component.id]: 'manual' }))}
-                            className={`px-3 py-2 text-xs font-medium rounded transition-colors ${mode === 'manual' ? 'bg-emerald-600 text-white border border-emerald-500' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white hover:border-slate-600'}`}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${mode === 'manual' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                           >
                             Manual
                           </button>
                           <button
                             type="button"
                             onClick={() => {
-                               setActuatorMode(prev => ({ ...prev, [component.id]: 'auto' }));
-                               if (!autoConfig[component.id] || autoConfig[component.id].length === 0) {
-                                  setAutoConfig(prev => ({ ...prev, [component.id]: [{ id: Math.random().toString(36).substring(7), sensorId: null, threshold: '', operator: 'lebih_dari' }] }));
-                               }
+                              setActuatorMode(prev => ({ ...prev, [component.id]: 'auto' }));
+                              if (!autoConfig[component.id] || autoConfig[component.id].length === 0) {
+                                setAutoConfig(prev => ({ ...prev, [component.id]: [{ id: Math.random().toString(36).substring(7), sensorId: null, threshold: '', operator: 'lebih_dari' }] }));
+                              }
                             }}
-                            className={`px-3 py-2 text-xs font-medium rounded transition-colors ${mode === 'auto' ? 'bg-emerald-600 text-white border border-emerald-500' : 'bg-slate-900 text-slate-400 border border-slate-700 hover:text-white hover:border-slate-600'}`}
+                            className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${mode === 'auto' ? 'bg-cyan-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
                           >
                             Otomatis
                           </button>
@@ -608,31 +654,31 @@ export default function SmartIoTPage() {
                       </div>
 
                       {mode === 'manual' ? (
-                        <div className="flex items-center justify-between border-t border-slate-800 pt-3 mt-1">
-                          <span className="text-xs text-slate-400">Kontrol Manual</span>
+                        <div className="flex items-center justify-between border-t border-slate-800/80 pt-3 mt-1">
+                          <span className="text-xs text-slate-400 font-medium">Kontrol Manual</span>
                           <button
                             type="button"
                             onClick={() => toggleActuator(component.id)}
                             className="rounded-full transition-transform active:scale-95 focus:outline-none"
                           >
                             {actuatorState[component.id] ? (
-                              <ToggleRight className="w-12 h-12 text-emerald-400" />
+                              <ToggleRight className="w-11 h-11 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                             ) : (
-                              <ToggleLeft className="w-12 h-12 text-slate-600" />
+                              <ToggleLeft className="w-11 h-11 text-slate-600" />
                             )}
                           </button>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-3 border-t border-slate-800 pt-3 mt-1">
+                        <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-3 mt-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-xs text-slate-400">Aturan Aktif: <strong className="text-slate-200">{validRulesCount} Aturan</strong></span>
-                            <button 
+                            <span className="text-xs text-slate-400 font-medium">Aturan Aktif: <strong className="text-cyan-400">{validRulesCount} Aturan</strong></span>
+                            <button
                               type="button"
                               onClick={() => {
                                 setActiveActuatorForModal(component.id);
                                 setIsAutoModalOpen(true);
                               }}
-                              className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded font-medium transition-colors shadow-lg shadow-cyan-900/20"
+                              className="text-xs bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-1.5 rounded-lg font-semibold transition-all shadow-md shadow-cyan-900/20 active:scale-95"
                             >
                               Edit Aturan
                             </button>
@@ -648,53 +694,80 @@ export default function SmartIoTPage() {
       </div>
 
       {/* TABEL RIWAYAT LOG TELEMETRI */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2 text-slate-300">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <h3 className="font-bold text-sm uppercase tracking-wider">Tabel Riwayat Aktivitas Penakaran</h3>
+      <div className="bg-[#131B29] border border-[#243044] rounded-2xl p-6 shadow-lg space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#243044] pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-tight">Riwayat Log Telemetri</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Catatan pembacaan parameter berkala dari node sensor {selectedDevice ? selectedDevice.boxName || selectedDevice.deviceCode : 'Greenhouse A3'}.
+            </p>
           </div>
-          <span className="text-xs font-mono bg-slate-950 px-2 py-1 rounded text-slate-400">
-            {selectedDevice ? `Unit: ${selectedDevice.deviceCode}` : 'Semua Unit'}
-          </span>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportCSV}
+              className="flex items-center gap-2 bg-[#1E293B]/80 hover:bg-[#28354A] border border-slate-700/60 text-xs font-semibold text-slate-300 px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              Export CSV
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-2 bg-[#1E293B]/80 hover:bg-[#28354A] border border-slate-700/60 text-xs font-semibold text-slate-300 px-4 py-2 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+            >
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              Filter
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-500 text-xs uppercase tracking-wider">
-                <th className="py-2.5 px-2">Waktu Catat</th>
-                <th className="py-2.5 px-2">Kode Alat</th>
-                <th className="py-2.5 px-2">Nama Indikator</th>
-                <th className="py-2.5 px-2 text-right">Nilai Ukur</th>
+              <tr className="border-b border-[#243044] text-[#94A3B8] text-[11px] font-bold uppercase tracking-wider">
+                <th className="py-3.5 px-4">WAKTU CATAT</th>
+                <th className="py-3.5 px-4">KODE ALAT</th>
+                <th className="py-3.5 px-4">PARAMETER & NILAI</th>
+                <th className="py-3.5 px-4 text-center">AMBANG BATAS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
+            <tbody className="divide-y divide-[#243044]/60 text-slate-300">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-slate-500">Memuat log telemetri...</td>
+                  <td colSpan={4} className="py-8 text-center text-slate-500">Memuat log telemetri dari database...</td>
                 </tr>
-                // 1. Ubah pengecekan dari filteredLogs ke tableLogs
               ) : tableLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-6 text-center text-slate-500">
-                    Belum ada riwayat aktivitas yang cocok dengan kriteria.
+                  <td colSpan={4} className="py-8 text-center text-slate-500">
+                    Belum ada riwayat aktivitas yang terekam di database.
                   </td>
                 </tr>
               ) : (
-                // 2. Ubah map dari filteredLogs ke tableLogs
                 tableLogs.map((log) => {
                   const safeLogDate = log.recorded_at.includes(' ') && !log.recorded_at.includes('T')
                     ? log.recorded_at.replace(' ', 'T')
                     : log.recorded_at;
+                  const dateObj = new Date(safeLogDate);
+                  const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+                  const formattedTime = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
                   return (
-                    <tr key={log.id} className="hover:bg-slate-800/10 transition-colors">
-                      <td className="py-2.5 px-2 font-mono text-xs text-slate-400">
-                        {new Date(safeLogDate).toLocaleDateString('id-ID')} {new Date(safeLogDate).toLocaleTimeString('id-ID')}
+                    <tr key={log.id} className="hover:bg-[#1A2436]/50 transition-colors">
+                      <td className="py-4 px-4 font-mono text-slate-400">
+                        {formattedDate} - {formattedTime} WIB
                       </td>
-                      <td className="py-2.5 px-2 font-semibold text-slate-200">{log.deviceCode}</td>
-                      <td className="py-2.5 px-2 text-slate-400">{log.componentName}</td>
-                      <td className="py-2.5 px-2 text-right font-mono font-bold text-cyan-400">{log.value}</td>
+                      <td className="py-4 px-4 font-bold text-white">
+                        {log.deviceCode} <span className="text-slate-400 font-normal">({log.boxName || 'Bed A'})</span>
+                      </td>
+                      <td className="py-4 px-4 text-slate-300">
+                        {log.componentName || 'Sensor'}: <span className="font-bold text-[#10B981] font-mono">{log.value}</span>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981]">
+                          Optimal
+                        </span>
+                      </td>
                     </tr>
                   );
                 })
@@ -706,79 +779,79 @@ export default function SmartIoTPage() {
 
       {/* MODAL ATURAN OTOMATIS */}
       {isAutoModalOpen && activeActuatorForModal !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-[#0D1123] border border-slate-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
             {(() => {
               const rules = autoConfig[activeActuatorForModal] || [];
               const actuatorComp = devices.flatMap(d => d.components).find(c => c.id === activeActuatorForModal);
               const deviceForActuator = devices.find(d => d.components.some(c => c.id === activeActuatorForModal));
               const sensors = deviceForActuator ? deviceForActuator.components.filter(c => getComponentType(c) === 'sensor') : [];
-              
+
               const handleAddRule = () => {
                 setAutoConfig(prev => ({
                   ...prev,
                   [activeActuatorForModal]: [...(prev[activeActuatorForModal] || []), { id: Math.random().toString(36).substring(7), sensorId: null, threshold: '', operator: 'lebih_dari' }]
                 }));
               };
-              
+
               const handleRemoveRule = (ruleId: string) => {
                 setAutoConfig(prev => ({
                   ...prev,
                   [activeActuatorForModal]: (prev[activeActuatorForModal] || []).filter(r => r.id !== ruleId)
                 }));
               };
-              
+
               const handleUpdateRule = (ruleId: string, updates: Partial<{ sensorId: number | null, threshold: number | '', operator: 'lebih_dari' | 'kurang_dari' }>) => {
                 setAutoConfig(prev => ({
                   ...prev,
                   [activeActuatorForModal]: (prev[activeActuatorForModal] || []).map(r => r.id === ruleId ? { ...r, ...updates } : r)
                 }));
               };
-              
+
               return (
                 <>
-                  <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/80">
+                  <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-[#0A0D1B]">
                     <div>
-                      <h3 className="font-bold text-slate-100 text-lg">Aturan Otomatis</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Aktuator: <span className="font-semibold text-slate-300">{actuatorComp?.componentName || 'Tidak diketahui'}</span></p>
+                      <h3 className="font-bold text-white text-lg tracking-tight">Aturan Otomatis</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Aktuator: <span className="font-semibold text-cyan-400">{actuatorComp?.componentName || 'Tidak diketahui'}</span></p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => setIsAutoModalOpen(false)}
-                      className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-lg transition-colors"
+                      className="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-xl transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                     </button>
                   </div>
-                  
+
                   <div className="p-5 overflow-y-auto flex-1 space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Daftar Aturan</span>
-                      <button onClick={handleAddRule} type="button" className="text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg transition-colors shadow-lg shadow-cyan-900/20">
+                      <button onClick={handleAddRule} type="button" className="text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-lg transition-all shadow-md shadow-cyan-900/20 active:scale-95">
                         + Tambah Aturan
                       </button>
                     </div>
-                    
+
                     {rules.length === 0 ? (
-                      <div className="text-center p-6 text-sm text-slate-500 border border-dashed border-slate-700 rounded-xl bg-slate-950/50">
-                        Belum ada aturan tersimpan.<br/>Silakan tambah aturan baru untuk mengaktifkan fungsi otomatis.
+                      <div className="text-center p-6 text-sm text-slate-500 border border-dashed border-slate-800 rounded-xl bg-[#0A0D1B]/50">
+                        Belum ada aturan tersimpan.<br />Silakan tambah aturan baru untuk mengaktifkan fungsi otomatis.
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {rules.map((rule, idx) => (
-                          <div key={rule.id} className="flex flex-col gap-3 p-4 bg-slate-950 rounded-xl border border-slate-700 relative shadow-sm">
+                          <div key={rule.id} className="flex flex-col gap-3 p-4 bg-[#0A0D1B] rounded-xl border border-slate-800 relative shadow-sm">
                             <button
                               onClick={() => handleRemoveRule(rule.id)}
-                              className="absolute top-3 right-3 text-rose-500 hover:text-white text-xs font-bold bg-rose-500/10 hover:bg-rose-500 w-6 h-6 rounded flex items-center justify-center transition-colors"
+                              className="absolute top-3 right-3 text-rose-400 hover:text-white text-xs font-bold bg-rose-500/10 hover:bg-rose-600 w-6 h-6 rounded-lg flex items-center justify-center transition-colors"
                               title="Hapus Aturan"
                             >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
                             </button>
                             <div>
                               <label className="block text-xs font-semibold text-slate-400 mb-1.5">Sensor Acuan {idx + 1}</label>
                               <select
                                 value={rule.sensorId || ''}
                                 onChange={(e) => handleUpdateRule(rule.id, { sensorId: e.target.value ? Number(e.target.value) : null })}
-                                className="w-full rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                                className="w-full rounded-xl border border-slate-800 bg-[#151B33] p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-all"
                               >
                                 <option value="">-- Pilih Sensor --</option>
                                 {sensors.map(s => (
@@ -792,7 +865,7 @@ export default function SmartIoTPage() {
                                 <select
                                   value={rule.operator || 'lebih_dari'}
                                   onChange={(e) => handleUpdateRule(rule.id, { operator: e.target.value as 'lebih_dari' | 'kurang_dari' })}
-                                  className="w-1/3 rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                                  className="w-1/3 rounded-xl border border-slate-800 bg-[#151B33] p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-all"
                                 >
                                   <option value="lebih_dari">Lebih dari {'>'}</option>
                                   <option value="kurang_dari">Kurang dari {'<'}</option>
@@ -802,7 +875,7 @@ export default function SmartIoTPage() {
                                   value={rule.threshold}
                                   onChange={(e) => handleUpdateRule(rule.id, { threshold: e.target.value === '' ? '' : Number(e.target.value) })}
                                   placeholder="Contoh: 30"
-                                  className="w-2/3 rounded-lg border border-slate-700 bg-slate-900 p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors"
+                                  className="w-2/3 rounded-xl border border-slate-800 bg-[#151B33] p-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-all"
                                 />
                               </div>
                             </div>
@@ -810,16 +883,16 @@ export default function SmartIoTPage() {
                         ))}
                       </div>
                     )}
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 mt-4">
-                      <p className="text-xs text-emerald-400 font-medium">Informasi Logika OR:</p>
-                      <p className="text-[11px] text-slate-300 mt-1">Aktuator akan menyala (<strong className="text-emerald-400">ON</strong>) secara otomatis jika nilai dari <strong>salah satu</strong> sensor memenuhi kondisi yang ditentukan.</p>
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3.5 mt-4">
+                      <p className="text-xs text-emerald-400 font-semibold">Informasi Logika OR:</p>
+                      <p className="text-[11px] text-slate-300 mt-1 leading-relaxed">Aktuator akan menyala (<strong className="text-emerald-400">ON</strong>) secara otomatis jika nilai dari <strong>salah satu</strong> sensor memenuhi kondisi yang ditentukan.</p>
                     </div>
                   </div>
-                  
-                  <div className="p-4 border-t border-slate-800 bg-slate-950/80 flex justify-end">
-                    <button 
+
+                  <div className="p-4 border-t border-slate-800 bg-[#0A0D1B] flex justify-end">
+                    <button
                       onClick={() => setIsAutoModalOpen(false)}
-                      className="text-sm bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-colors shadow-lg shadow-emerald-900/20"
+                      className="text-sm bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-900/20 active:scale-95"
                     >
                       Selesai & Tutup
                     </button>

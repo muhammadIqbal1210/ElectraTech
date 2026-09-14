@@ -1,7 +1,9 @@
 'use client';
-import { FormEvent, useEffect, useState } from 'react';
-import { PackagePlus, Route, Sprout } from 'lucide-react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { BookOpen, History, Check } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
+import FeedbackModal from '@/utils/FeedbackModal';
+import Pagination from '@/utils/Pagination';
 
 type BatchRow = {
   id: string;
@@ -18,16 +20,11 @@ type BatchLog = {
   created_at: string;
 };
 
-type ShipmentRow = {
-  receiptNumber: string;
-  batchId: string;
-  variety: string;
-  generation: string;
-  destination: string;
-  packageQuantity: number;
-  status: string;
-  courierName: string | null;
-};
+type FeedbackState = {
+  type: 'success' | 'error';
+  title: string;
+  message: string;
+} | null;
 
 export default function BudidayaPage() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
@@ -35,236 +32,268 @@ export default function BudidayaPage() {
   const [toPhase, setToPhase] = useState('PENYEMAIAN');
   const [notes, setNotes] = useState('');
   const [logs, setLogs] = useState<BatchLog[]>([]);
-  const [shipments, setShipments] = useState<ShipmentRow[]>([]);
-  const [shipmentBatchId, setShipmentBatchId] = useState('');
-  const [destination, setDestination] = useState('');
-  const [packageQuantity, setPackageQuantity] = useState('');
-  const [shipmentNotes, setShipmentNotes] = useState('');
-  const [message, setMessage] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const [feedback, setFeedback] = useState<FeedbackState>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loadBatches = async () => {
-    const response = await apiRequest<BatchRow[]>('/api/batches');
-    const data = response.data || [];
-    setBatches(data);
-    setSelectedBatch((current) => current || data[0]?.id || '');
-    setShipmentBatchId((current) => current || data[0]?.id || '');
+    try {
+      const response = await apiRequest<BatchRow[]>('/api/batches');
+      const data = response.data || [];
+      setBatches(data);
+      if (data.length > 0) {
+        setSelectedBatch((current) => current || data[0].id);
+      }
+    } catch (err) {
+      console.error('Error loading batches:', err);
+    }
   };
 
   const loadLogs = async (batchId: string) => {
     if (!batchId) return;
-    const response = await apiRequest<BatchLog[]>(`/api/batches/${batchId}/logs`);
-    setLogs(response.data || []);
-  };
-
-  const loadShipments = async () => {
     try {
-      const response = await apiRequest<ShipmentRow[]>('/api/tracking/shipments');
-      setShipments(response.data || []);
+      const response = await apiRequest<BatchLog[]>(`/api/batches/${batchId}/logs`);
+      setLogs(response.data || []);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Gagal memuat paket pengiriman.');
+      console.error('Error loading batch logs:', err);
     }
   };
 
   useEffect(() => {
-    void Promise.resolve()
-      .then(async () => {
-        await loadBatches();
-        await loadShipments();
-      })
-      .catch((err) => setMessage(err instanceof Error ? err.message : 'Gagal memuat data budidaya.'));
+    void loadBatches();
   }, []);
 
   useEffect(() => {
-    void Promise.resolve()
-      .then(() => loadLogs(selectedBatch))
-      .catch((err) => setMessage(err instanceof Error ? err.message : 'Gagal memuat log fase.'));
+    if (selectedBatch) {
+      setCurrentPage(1);
+      void loadLogs(selectedBatch);
+    }
   }, [selectedBatch]);
+
+  const totalPages = Math.ceil(logs.length / itemsPerPage);
+  const paginatedLogs = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return logs.slice(start, start + itemsPerPage);
+  }, [logs, currentPage, itemsPerPage]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setMessage('');
+    if (!selectedBatch) return;
 
+    setIsSubmitting(true);
     try {
       await apiRequest<BatchLog>(`/api/batches/${selectedBatch}/logs`, {
         method: 'POST',
         body: JSON.stringify({ toPhase, notes }),
       });
       setNotes('');
-      setMessage('Perubahan fase berhasil disimpan.');
+      setFeedback({
+        type: 'success',
+        title: 'Fase Hidup Berhasil Diperbarui',
+        message: 'Perubahan fase hidup telah berhasil dicatat ke ledger.',
+      });
       await Promise.all([loadBatches(), loadLogs(selectedBatch)]);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Gagal menyimpan perubahan fase.');
+      setFeedback({
+        type: 'error',
+        title: 'Gagal Memperbarui Fase',
+        message: err instanceof Error ? err.message : 'Terjadi kesalahan saat menyimpan fase baru.',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCreateShipment = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setMessage('');
+  const formatPhaseLabel = (phase: string | null) => {
+    if (!phase) return '-';
+    const p = phase.toUpperCase();
+    if (p.includes('SEMAI')) return 'PENYEMAIAN';
+    if (p.includes('VEGETA')) return 'VEGETATIF';
+    if (p.includes('GENERA')) return 'GENERATIF';
+    if (p.includes('DISTRIBUSI') || p.includes('PANEN')) return 'SIAP DISTRIBUSI';
+    return p;
+  };
 
-    try {
-      await apiRequest('/api/tracking/shipments', {
-        method: 'POST',
-        body: JSON.stringify({
-          batchId: shipmentBatchId,
-          destination,
-          packageQuantity: Number(packageQuantity),
-          notes: shipmentNotes,
-        }),
-      });
-      setShipmentBatchId('');
-      setDestination('');
-      setPackageQuantity('');
-      setShipmentNotes('');
-      setMessage('Paket berhasil dibuat dan siap diterima kurir.');
-      await loadShipments();
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Gagal membuat paket pengiriman.');
-    }
+  const getPhaseBadgeStyle = (phase: string | null) => {
+    if (!phase) return 'bg-slate-800 text-slate-400 border-slate-700';
+    const p = phase.toUpperCase();
+    if (p.includes('SEMAI')) return 'bg-cyan-950/60 text-cyan-400 border-cyan-800/60';
+    if (p.includes('VEGETA')) return 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60';
+    if (p.includes('GENERA')) return 'bg-amber-950/60 text-amber-400 border-amber-800/60';
+    return 'bg-indigo-950/60 text-indigo-400 border-indigo-800/60';
   };
 
   return (
-    <div className="grid grid-cols-4 lg:grid-cols-3 gap-6">
-      {/* Form Log Perubahan Fase */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-        <h2 className="font-bold text-base flex items-center gap-2 text-emerald-400">
-          <Sprout className="w-5 h-5" /> Update Fase Hidup
-        </h2>
-        <form className="space-y-4 text-sm" onSubmit={handleSubmit}>
+    <div className="space-y-6 text-slate-100">
+      {/* Header Halaman */}
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
+        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+          Manajemen Budidaya
+        </h1>
+        <p className="text-sm text-slate-400 mt-1">
+          Update setiap fase hidup tanaman anda
+        </p>
+      </div>
+
+      {/* Card Form Update Fase Hidup */}
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 justify-between shadow-lg border border-slate-800/80 rounded-2xl p-6 shadow-xl">
+        <div className="flex items-start gap-3 mb-6">
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Pilih ID Batch</label>
-            <select value={selectedBatch} onChange={(event) => setSelectedBatch(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none">
+            <h2 className="font-semibold text-lg text-white leading-tight">Update Fase Hidup</h2>
+            <p className="text-sm text-slate-400 mt-1">Perbarui tahapan pertumbuhan bibit di ledger</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5 text-xs">
+          <div>
+            <label className="block text-[11px] font-medium tracking-wider text-slate-400 uppercase mb-2">
+              PILIH ID BATCH
+            </label>
+            <select
+              value={selectedBatch}
+              onChange={(e) => setSelectedBatch(e.target.value)}
+              className="w-full bg-[#05070e] border border-slate-800/90 rounded-xl px-4 py-3 text-slate-200 text-sm focus:outline-none focus:border-emerald-500/60 transition"
+            >
               {batches.map((batch) => (
-                <option key={batch.id} value={batch.id}>{batch.id} ({batch.variety})</option>
+                <option key={batch.id} value={batch.id}>
+                  {batch.id} ({batch.variety})
+                </option>
               ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Fase Hidup Baru</label>
-            <select value={toPhase} onChange={(event) => setToPhase(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-300 focus:outline-none">
+            <label className="block text-[11px] font-medium tracking-wider text-slate-400 uppercase mb-2">
+              FASE HIDUP BARU
+            </label>
+            <select
+              value={toPhase}
+              onChange={(e) => setToPhase(e.target.value)}
+              className="w-full bg-[#05070e] border border-slate-800/90 rounded-xl px-4 py-3 text-slate-200 text-sm focus:outline-none focus:border-emerald-500/60 transition"
+            >
               <option value="PENYEMAIAN">Fase Penyemaian (Seedling)</option>
               <option value="VEGETATIF">Fase Vegetatif</option>
               <option value="GENERATIF">Fase Generatif</option>
               <option value="SIAP_DISTRIBUSI">Fase Siap Kemas & Distribusi</option>
             </select>
           </div>
+
           <div>
-            <label className="block text-xs text-slate-400 mb-1">Catatan Kondisi</label>
-            <textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-24 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500" placeholder="Tunas sehat, nutrisi cukup, atau catatan inspeksi." />
+            <label className="block text-[11px] font-medium tracking-wider text-slate-400 uppercase mb-2">
+              CATATAN KONDISI
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Tunas sehat, nutrisi cukup, atau catatan inspeksi..."
+              className="w-full bg-[#05070e] border border-slate-800/90 rounded-xl p-4 text-slate-200 text-sm focus:outline-none focus:border-emerald-500/60 transition resize-none placeholder:text-slate-600"
+            />
           </div>
-          <button className="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-2.5 rounded-xl transition-all">
-            Simpan Perubahan Fase
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !selectedBatch}
+            className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 text-slate-950 font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-xs cursor-pointer disabled:cursor-not-allowed"
+          >
+            <Check className="w-4 h-4 stroke-[2.5]" />
+            {isSubmitting ? 'Menyimpan Perubahan...' : 'Simpan Perubahan Fase'}
           </button>
-          {message && <p className="text-xs font-semibold text-emerald-300">{message}</p>}
         </form>
       </div>
 
-      {/* History Log Perubahan Fase */}
-      <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
-          <Route className="w-5 h-5 text-green-400" /> Rekam Jejak Siklus Hidup Bibit
-        </h2>
-        <div className="overflow-x-auto text-sm">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-800 text-slate-500 text-xs">
-                <th className="pb-2">ID Batch</th>
-                <th className="pb-2">Fase Asal</th>
-                <th className="pb-2">Fase Baru</th>
-                <th className="pb-2">Catatan</th>
-                <th className="pb-2">Tanggal Mutasi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-800/10">
-                  <td className="py-3 font-mono text-emerald-400">{log.batch_id}</td>
-                  <td className="py-3 text-slate-400">{log.from_phase || '-'}</td>
-                  <td className="py-3 font-semibold text-emerald-400">{log.to_phase}</td>
-                  <td className="py-3 text-slate-400 italic">{log.notes || '-'}</td>
-                  <td className="py-3 text-xs text-slate-500 font-mono">{new Date(log.created_at).toLocaleDateString('id-ID')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-      <h2 className="font-bold text-base flex items-center gap-2 text-purple-400">
-        <PackagePlus className="w-5 h-5" /> Serahkan Paket ke Kurir
-      </h2>
-      
-      <form className="space-y-4 text-sm" onSubmit={handleCreateShipment}>
-        
-        {/* Ganti ke grid-cols-12 agar bisa membagi lebar secara fleksibel */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-          
-          {/* 1. Batch Siap Kirim (Diberi ruang paling besar: 5 dari 12 kolom) */}
-          <div className="xl:col-span-3">
-            <label className="block text-xs text-slate-400 mb-1">Batch Siap Kirim</label>
-            <select value={shipmentBatchId} onChange={(event) => setShipmentBatchId(event.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required>
-              {batches.map((batch) => (
-                <option key={batch.id} value={batch.id}>{batch.id} - {batch.variety}</option>
-              ))}
-            </select>
+      {/* Card Table Rekam Jejak Siklus Hidup Bibit */}
+      <div className="bg-[#0b0f19] border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="font-semibold text-base text-white leading-tight">Rekam Jejak Siklus Hidup Bibit</h2>
+              <p className="text-xs text-slate-400 mt-1">Riwayat audit mutasi fase tanaman berkala</p>
+            </div>
           </div>
-          
-          {/* 2. Jumlah Bibit (Dibuat ringkas karena hanya angka: 3 dari 12 kolom) */}
-          <div className="xl:col-span-2">
-            <label className="block text-xs text-slate-400 mb-1">Jumlah Bibit Dalam Paket</label>
-            <input value={packageQuantity} onChange={(event) => setPackageQuantity(event.target.value)} type="number" min={1} placeholder="250" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
-          </div>
-          
-          {/* 3. Tujuan Pengiriman (Sedang menuju luas: 4 dari 12 kolom) */}
-          <div className="xl:col-span-7">
-            <label className="block text-xs text-slate-400 mb-1">Tujuan Pengiriman</label>
-            <input value={destination} onChange={(event) => setDestination(event.target.value)} placeholder="Alamat penerima / hub distribusi" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500" required />
-          </div>
-
+          <span className="text-[11px] font-medium text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
+            Total: {logs.length} Catatan
+          </span>
         </div>
 
-        <textarea value={shipmentNotes} onChange={(event) => setShipmentNotes(event.target.value)} placeholder="Catatan handling untuk kurir" className="min-h-20 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 focus:outline-none focus:border-purple-500 resize-none" />
-        
-        <button className="w-full bg-purple-600 hover:bg-purple-500 font-bold py-2.5 rounded-xl transition-all">
-          Buat Paket Siap Pickup
-        </button>
-      </form>
-    </div>
-      <div className="lg:col-span-3 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-        <h2 className="font-bold text-base flex items-center gap-2 text-slate-300 mb-4">
-          <PackagePlus className="w-5 h-5 text-purple-400" /> Paket dari Produsen ke Kurir
-        </h2>
-        <div className="overflow-x-auto text-sm">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-500 text-xs">
-                <th className="pb-2">Resi</th>
-                <th className="pb-2">Batch</th>
-                <th className="pb-2">Tujuan</th>
-                <th className="pb-2">Jumlah</th>
-                <th className="pb-2">Kurir</th>
-                <th className="pb-2">Status</th>
+              <tr className="border-b border-slate-800/80 text-slate-500 text-[10px] uppercase tracking-wider">
+                <th className="py-3 px-3">ID BATCH</th>
+                <th className="py-3 px-3">FASE ASAL</th>
+                <th className="py-3 px-3">FASE BARU</th>
+                <th className="py-3 px-3">CATATAN</th>
+                <th className="py-3 px-3 text-right">TANGGAL MUTASI</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50 text-slate-300">
-              {shipments.map((shipment) => (
-                <tr key={shipment.receiptNumber} className="hover:bg-slate-800/10">
-                  <td className="py-3 font-mono text-purple-300">{shipment.receiptNumber}</td>
-                  <td className="py-3">{shipment.batchId} - {shipment.variety}</td>
-                  <td className="py-3 text-xs text-slate-400">{shipment.destination}</td>
-                  <td className="py-3 font-mono text-xs">{shipment.packageQuantity.toLocaleString('id-ID')}</td>
-                  <td className="py-3 text-xs text-slate-400">{shipment.courierName || 'Belum diterima'}</td>
-                  <td className="py-3">
-                    <span className="rounded-md border border-purple-500/20 bg-purple-500/10 px-2 py-1 text-[10px] font-bold text-purple-300">
-                      {shipment.status.replaceAll('_', ' ')}
-                    </span>
+            <tbody className="divide-y divide-slate-800/60 text-slate-300 font-sans">
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-slate-500 italic">
+                    Belum ada riwayat mutasi fase untuk batch ini.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedLogs.map((log) => {
+                  const dateObj = new Date(log.created_at);
+                  const dateStr = isNaN(dateObj.getTime())
+                    ? '-'
+                    : `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
+
+                  return (
+                    <tr key={log.id} className="hover:bg-slate-900/40 transition-colors">
+                      <td className="py-4 px-3 font-semibold text-slate-400 flex items-center gap-2">
+                        {log.batch_id}
+                      </td>
+                      <td className="py-4 px-3">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold border uppercase ${getPhaseBadgeStyle(log.from_phase)}`}>
+                          {formatPhaseLabel(log.from_phase)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-3">
+                        <span className={`inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold border uppercase ${getPhaseBadgeStyle(log.to_phase)}`}>
+                          {formatPhaseLabel(log.to_phase)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-3 text-slate-300 max-w-xs truncate">
+                        {log.notes || '-'}
+                      </td>
+                      <td className="py-4 px-3 text-right text-slate-400 font-mono text-[11px]">
+                        {dateStr}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={logs.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          itemLabel="catatan"
+        />
+
+        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-800/60">
+          <div className="flex items-center gap-2 italic">
+            <span>* Setiap entri ditandatangani secara kriptografis melalui ledger blockchain</span>
+          </div>
+        </div>
       </div>
+
+      <FeedbackModal
+        open={feedback !== null}
+        type={feedback?.type || 'success'}
+        title={feedback?.title || ''}
+        message={feedback?.message || ''}
+        onClose={() => setFeedback(null)}
+      />
     </div>
   );
 }

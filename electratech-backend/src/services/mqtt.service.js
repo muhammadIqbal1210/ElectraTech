@@ -4,7 +4,7 @@ const pool = require('../config/db');
 const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://72.61.118.54:53937';
 const commandSuffix = process.env.MQTT_COMMAND_SUFFIX || '/command';
 
-let client = null; 
+let client = null;
 let connected = false;
 let subscribedTopics = new Set();
 

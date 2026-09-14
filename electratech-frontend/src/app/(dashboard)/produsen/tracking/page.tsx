@@ -161,24 +161,13 @@ export default function TrackingBenihProdusenPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-cyan-500/10 p-3 text-cyan-300">
-            <Route className="h-5 w-5" />
-          </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Tracking Benih</h1>
             <p className="mt-1 text-sm text-slate-400">
-              Pantau posisi, kondisi muatan, suhu kontainer, dan status paket benih dari update kurir.
+              Pantau posisi dan status paket benih dari update kurir.
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-xs font-bold text-cyan-300 transition-all hover:bg-cyan-500/15"
-        >
-          <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
       </div>
 
       {message && <p className="text-sm font-semibold text-amber-300">{message}</p>}
@@ -190,8 +179,8 @@ export default function TrackingBenihProdusenPage() {
           ['Sudah Terkirim', summary.delivered, 'text-emerald-300'],
         ].map(([label, value, color]) => (
           <div key={label} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
-            <p className={`mt-1 font-mono text-2xl font-black ${color}`}>{value}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+            <p className={`mt-1 font-inter text-2xl font-bold ${color}`}>{value}</p>
           </div>
         ))}
       </div>
@@ -370,28 +359,15 @@ export default function TrackingBenihProdusenPage() {
                       <Package className="h-4 w-4 text-cyan-300" />
                       Kondisi Terakhir
                     </h2>
-                    <p className="mt-4 text-2xl font-black text-emerald-300">
+                    <p className="mt-4 text-xl font-semibold text-emerald-300">
                       {latestLog?.cargo_condition || 'Menunggu'}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
                       {latestLog ? latestLog.status : 'Paket belum memiliki update kurir.'}
                     </p>
                   </div>
-
                   <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                    <h2 className="flex items-center gap-2 text-sm font-bold text-slate-300">
-                      <Thermometer className="h-4 w-4 text-orange-300" />
-                      Suhu Kontainer
-                    </h2>
-                    <p className="mt-4 font-mono text-3xl font-black text-orange-300">
-                      {latestLog?.container_temperature_c ? `${latestLog.container_temperature_c} C` : '--'}
-                    </p>
                     <p className="mt-1 text-xs text-slate-500">Data dari check-in terakhir.</p>
-                  </div>
-
-                  <div className="flex items-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-300">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Data tersinkron dengan TraceChain
                   </div>
                 </aside>
               </div>

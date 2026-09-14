@@ -50,10 +50,12 @@ router.get('/devices', asyncHandler(async (req, res) => {
     [...access.params],
   );
 
-  res.json({ ok: true, data: result.rows.map((row) => ({
-    ...row,
-    components: row.components || [],
-  })) });
+  res.json({
+    ok: true, data: result.rows.map((row) => ({
+      ...row,
+      components: row.components || [],
+    }))
+  });
 }));
 
 router.get('/logs', asyncHandler(async (req, res) => {
@@ -78,6 +80,34 @@ router.get('/logs', asyncHandler(async (req, res) => {
      order by il.recorded_at desc
      limit $2`,
     [deviceCode || null, Math.min(Number(limit) || 50, 200), ...access.params],
+  );
+
+  res.json({ ok: true, data: result.rows });
+}));
+
+router.get('/commands', asyncHandler(async (req, res) => {
+  const { limit = 20 } = req.query;
+  const access = getDeviceAccessClause(req, 2);
+
+  const result = await pool.query(
+    `select dc_log.id,
+            d.device_code as "deviceCode",
+            d.box_name as "boxName",
+            dc.component_name as "componentName",
+            dc.component_type as "componentType",
+            dc_log.command_value as value,
+            dc_log.status,
+            dc_log.created_at as "createdAt",
+            coalesce(dc_log.executed_at, dc_log.created_at) as "recordedAt"
+     from device_commands dc_log
+     join device_components dc on dc.id = dc_log.component_id
+     join devices d on d.id = dc.device_id
+     where dc.component_type = 'actuator'
+       and upper(dc_log.command_value) in ('ON', 'OFF')
+       ${access.clause}
+     order by coalesce(dc_log.executed_at, dc_log.created_at) desc
+     limit $1`,
+    [Math.min(Number(limit) || 20, 100), ...access.params],
   );
 
   res.json({ ok: true, data: result.rows });
@@ -121,85 +151,85 @@ router.post('/logs', requireRole('ADMIN', 'PRODUSEN'), asyncHandler(async (req, 
   );
 
   res.status(201).json({ ok: true, data: insertResult.rows[0] });
-  }));
-  
-  router.post('/components/:id/control', asyncHandler(async (req, res) => {
-    const componentId = Number(req.params.id);
-    const { value } = req.body; 
+}));
 
-    const userId = req.user?.id || null; 
+router.post('/components/:id/control', asyncHandler(async (req, res) => {
+  const componentId = Number(req.params.id);
+  const { value } = req.body;
 
-    if (!Number.isInteger(componentId)) {
-      throw createError(400, 'ID komponen tidak valid.');
-    }
+  const userId = req.user?.id || null;
 
-    if (value === undefined) {
-      throw createError(400, 'Nilai kontrol (value) tidak boleh kosong.');
-    }
+  if (!Number.isInteger(componentId)) {
+    throw createError(400, 'ID komponen tidak valid.');
+  }
 
-    // Standardisasi nilai ke huruf kapital dan hapus spasi tak sengaja
-    // Ini menangani jika frontend mengirim "on", "off", "ON", atau "OFF"
-    const normalizedValue = String(value).toUpperCase().trim();
+  if (value === undefined) {
+    throw createError(400, 'Nilai kontrol (value) tidak boleh kosong.');
+  }
 
-    // PERBAIKAN: Ubah 'ONN' menjadi 'ON' agar sesuai dengan standar hardware/IoT
-    if (!['ON', 'OFF'].includes(normalizedValue)) {
-      throw createError(400, 'Nilai harus "ON" atau "OFF".');
-    }
+  // Standardisasi nilai ke huruf kapital dan hapus spasi tak sengaja
+  // Ini menangani jika frontend mengirim "on", "off", "ON", atau "OFF"
+  const normalizedValue = String(value).toUpperCase().trim();
 
-    // 1. Ambil info komponen dari database
-    const componentResult = await pool.query(
-      `select id, mqtt_topic, component_type 
+  // PERBAIKAN: Ubah 'ONN' menjadi 'ON' agar sesuai dengan standar hardware/IoT
+  if (!['ON', 'OFF'].includes(normalizedValue)) {
+    throw createError(400, 'Nilai harus "ON" atau "OFF".');
+  }
+
+  // 1. Ambil info komponen dari database
+  const componentResult = await pool.query(
+    `select id, mqtt_topic, component_type 
       from device_components 
       where id = $1`,
-      [componentId]
-    );
+    [componentId]
+  );
 
-    const component = componentResult.rows[0];
+  const component = componentResult.rows[0];
 
-    if (!component) {
-      throw createError(404, 'Komponen IoT tidak ditemukan di database.');
+  if (!component) {
+    throw createError(404, 'Komponen IoT tidak ditemukan di database.');
+  }
+
+  if (component.component_type !== 'actuator') {
+    throw createError(400, 'Hanya komponen bertipe ACTUATOR yang bisa dikontrol.');
+  }
+
+  // 2. Tembak ke broker Mosquitto via mqtt.service menggunakan nilai yang sudah bersih
+  let mqttStatus = 'FAILED';
+  if (mqttService && typeof mqttService.publishToBroker === 'function') {
+    try {
+      // Mengirim string "ON" atau "OFF" yang murni ke hardware
+      mqttService.publishToBroker(component.mqtt_topic, normalizedValue);
+      console.log(`[MQTT] Berhasil kirim payload "${normalizedValue}" ke topik: ${component.mqtt_topic}`);
+      mqttStatus = 'SUCCESS';
+    } catch (mqttErr) {
+      console.error('[MQTT] Gagal mengirim pesan ke broker:', mqttErr);
     }
+  } else {
+    console.warn('[MQTT] Fungsi publishToBroker tidak ditemukan di mqtt.service.js');
+    mqttStatus = 'SENT';
+  }
 
-    if (component.component_type !== 'actuator') {
-      throw createError(400, 'Hanya komponen bertipe ACTUATOR yang bisa dikontrol.');
-    }
-
-    // 2. Tembak ke broker Mosquitto via mqtt.service menggunakan nilai yang sudah bersih
-    let mqttStatus = 'FAILED';
-    if (mqttService && typeof mqttService.publishToBroker === 'function') {
-      try {
-        // Mengirim string "ON" atau "OFF" yang murni ke hardware
-        mqttService.publishToBroker(component.mqtt_topic, normalizedValue);
-        console.log(`[MQTT] Berhasil kirim payload "${normalizedValue}" ke topik: ${component.mqtt_topic}`);
-        mqttStatus = 'SUCCESS';
-      } catch (mqttErr) {
-        console.error('[MQTT] Gagal mengirim pesan ke broker:', mqttErr);
-      }
-    } else {
-      console.warn('[MQTT] Fungsi publishToBroker tidak ditemukan di mqtt.service.js');
-      mqttStatus = 'SENT'; 
-    }
-
-    // 3. Catat perintah dengan nilai terstandardisasi
-    if (userId) {
-      await pool.query(
-        `insert into device_commands (component_id, command_value, status, issued_by, executed_at)
+  // 3. Catat perintah dengan nilai terstandardisasi
+  if (userId) {
+    await pool.query(
+      `insert into device_commands (component_id, command_value, status, issued_by, executed_at)
         values ($1, $2, $3, $4, now())`,
-        [componentId, normalizedValue, mqttStatus, userId]
-      );
-    } else {
-      console.warn('[DB] Perintah tidak dicatat ke device_commands karena token user_id kosong.');
-    }
+      [componentId, normalizedValue, mqttStatus, userId]
+    );
+  } else {
+    console.warn('[DB] Perintah tidak dicatat ke device_commands karena token user_id kosong.');
+  }
 
-    res.json({
-      ok: true,
-      message: `Instruksi kontrol [${normalizedValue}] berhasil dikirim.`,
-      data: { 
-        topic: component.mqtt_topic, 
-        value: normalizedValue,
-        status: mqttStatus 
-      }
-    });
+  res.json({
+    ok: true,
+    message: `Instruksi kontrol [${normalizedValue}] berhasil dikirim.`,
+    data: {
+      topic: component.mqtt_topic,
+      value: normalizedValue,
+      status: mqttStatus
+    }
+  });
 }));
 
 module.exports = router;

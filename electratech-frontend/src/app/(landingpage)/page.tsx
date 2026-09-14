@@ -1,6 +1,8 @@
 'use client';
 
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import {
@@ -17,7 +19,108 @@ import {
   ChevronRight,
   AlertCircle,
   Loader2,
+  Copy,
+  AlertTriangle,
+  ExternalLink,
 } from 'lucide-react';
+
+const members = [
+  {
+    name: "Ari Kurniawan S.T, M.T",
+    role: "Direktur Utama",
+    image: "/team_ari.png"
+  },
+  {
+    name: "Dr. Kiki Yulianto ",
+    role: "Komisaris Utama",
+    image: "/team_kiki.png"
+  },
+  {
+    name: "Muhammad Iqbal",
+    role: "Programmer",
+    image: "/iqbal.png"
+  }
+];
+function LandingBlogCards() {
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLatest() {
+      try {
+        const res = await fetch('http://localhost:4000/api/blogs?limit=3');
+        const json = await res.json();
+        if (json.ok && json.data) {
+          setBlogs(json.data);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLatest();
+  }, []);
+
+  if (loading) {
+    return <p className="text-slate-400 text-sm col-span-3 text-center py-8">Memuat berita terbaru...</p>;
+  }
+
+  if (blogs.length === 0) {
+    return <p className="text-slate-500 text-sm col-span-3 text-center py-8">Belum ada berita dipublikasikan.</p>;
+  }
+
+  return (
+    <>
+      {blogs.map((blog) => (
+        <article
+          key={blog.id}
+          className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:border-cyan-500/40 transition flex flex-col group"
+        >
+          <div className="relative h-48 bg-slate-950 overflow-hidden">
+            <Image
+              src={blog.thumbnail || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=800'}
+              alt={blog.title}
+              fill
+              unoptimized
+              className="object-cover group-hover:scale-105 transition duration-500"
+            />
+            <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-slate-800 text-cyan-400 text-[11px] font-semibold px-3 py-1 rounded-full">
+              {blog.category}
+            </div>
+          </div>
+
+          <div className="p-6 flex flex-col flex-1">
+            <div className="flex items-center gap-2 text-cyan-400 text-xs mb-3">
+              <CalendarDays className="w-3.5 h-3.5" />
+              {new Date(blog.created_at).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </div>
+
+            <h3 className="font-bold text-lg mb-3 text-white line-clamp-2 group-hover:text-cyan-400 transition">
+              {blog.title}
+            </h3>
+
+            <p className="text-slate-400 text-xs line-clamp-3 mb-6 flex-1">
+              {blog.content.replace(/<[^>]+>/g, '').substring(0, 120)}...
+            </p>
+
+            <Link
+              href={`/blog/${blog.slug}`}
+              className="inline-flex items-center gap-2 text-cyan-400 text-sm font-semibold hover:text-cyan-300 transition mt-auto"
+            >
+              Baca Selengkapnya
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </article>
+      ))}
+    </>
+  );
+}
 
 
 export default function LandingPage() {
@@ -37,6 +140,15 @@ export default function LandingPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const handleCopyUrl = (url: string) => {
+    if (typeof window !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(url);
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2000);
+    }
+  };
 
   const handleVerify = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -55,7 +167,7 @@ export default function LandingPage() {
       const json = await res.json();
 
       if (!res.ok || !json.ok) {
-        throw new Error(json.error || 'Produk tidak ditemukan dalam database ElectraTech.');
+        throw new Error(json.message || json.error || 'Produk tidak ditemukan dalam database ElectraTech.');
       }
 
       setVerifyResult(json.data);
@@ -123,7 +235,7 @@ export default function LandingPage() {
             <h1 className="text-5xl lg:text-4xl font-bold leading-tight">
               Building More Transparent
             </h1>
-              <h1 className="typing-text text-5xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <h1 className="typing-text text-5xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
               Products of the Future
             </h1>
 
@@ -389,7 +501,7 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="fitur" className="py-12 bg-slate-900/30 border-y border-slate-800/50">
+      <section id="fitur" className="py-12 bg-slate-800/30 border-y border-slate-800/50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <span className="text-cyan-400 uppercase text-xs tracking-widest block mb-2 font-medium">
@@ -591,47 +703,210 @@ export default function LandingPage() {
                 {/* State 4: Verified Result */}
                 {verifyResult && !isSearching && (
                   <div className="mt-8 space-y-6">
-                    {/* Header Verified Card */}
-                    <div className="text-left bg-slate-950/90 border border-emerald-500/30 rounded-2xl p-6 relative overflow-hidden shadow-xl shadow-emerald-950/20">
-                      <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-2xl rounded-full pointer-events-none" />
-                      <div className="flex items-center justify-between mb-5 pb-4 border-b border-slate-800/80">
-                        <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                          <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
-                          <span>Produk Terverifikasi & Asli</span>
-                        </div>
-                      </div>
-
-                      <div className="space-y-3.5 text-xs md:text-sm">
-                        <div className="flex justify-between items-center py-0.5">
-                          <span className="text-slate-400">Batch Serial ID:</span>
-                          <span className="text-cyan-300 font-mono font-medium px-2.5 py-1 rounded-lg text-xs shadow-inner">
-                            {verifyResult.batch.id}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5 border-t border-slate-900 pt-2.5">
-                          <span className="text-slate-400">Varietas & Generasi:</span>
-                          <span className="text-slate-200 font-medium">
-                            {verifyResult.batch.variety} ({verifyResult.batch.generation})
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5 border-t border-slate-900 pt-2.5">
-                          <span className="text-slate-400">Produsen / Petani:</span>
-                          <span className="text-slate-200 font-medium">{verifyResult.batch.producerName}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-0.5 border-t border-slate-900 pt-2.5">
-                          <span className="text-slate-400">Status & Fase Terakhir:</span>
-                          <span className="text-emerald-400 font-semibold px-2.5 py-0.5 rounded-full text-xs">
-                            {verifyResult.batch.phase}
-                          </span>
-                        </div>
-                        {verifyResult.latestStatus?.location && (
-                          <div className="flex justify-between items-center py-0.5 border-t border-slate-900 pt-2.5">
-                            <span className="text-slate-400">Lokasi / Tujuan Terakhir:</span>
-                            <span className="text-slate-200 font-medium">{verifyResult.latestStatus.location}</span>
+                    {/* Header Verified / Authenticity Status Card */}
+                    {verifyResult.verificationAudit?.isAuthentic || verifyResult.latestStatus?.isAuthentic ? (
+                      <div className="text-left bg-gradient-to-r from-emerald-950/80 via-slate-950 to-slate-950 border border-emerald-500/50 rounded-2xl p-6 relative overflow-hidden shadow-xl shadow-emerald-950/30">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/15 blur-3xl rounded-full pointer-events-none" />
+                        <div className="flex items-center justify-between mb-4 pb-4 border-b border-emerald-500/20">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-md shadow-emerald-500/20">
+                              <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500 text-slate-950 uppercase tracking-wide">
+                                  DATA TERVERIFIKASI ASLI
+                                </span>
+                                <span className="text-[11px] text-emerald-400 font-mono">100% Otentik</span>
+                              </div>
+                              <p className="text-xs text-slate-300 mt-1 font-medium">
+                                Produk ini terverifikasi 100% otentik dan terlindungi dari manipulasi data.
+                              </p>
+                            </div>
                           </div>
-                        )}
+                        </div>
+
+                        <div className="space-y-3 text-xs md:text-sm">
+                          <div className="flex justify-between items-center py-0.5">
+                            <span className="text-slate-400">Batch Serial ID:</span>
+                            <span className="text-cyan-300 font-mono font-medium px-2.5 py-1 rounded-lg text-xs bg-slate-900 border border-slate-800">
+                              {verifyResult.batch.id}
+                            </span>
+                          </div>
+
+                          {/* Alamat Verifikasi Kebenaran Data (Smart Contract Blockchain) */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-t border-slate-900/80 pt-2.5 bg-slate-900/60 px-3.5 rounded-xl border border-slate-800/80">
+                            <span className="text-slate-400 text-xs font-medium flex items-center gap-1.5 shrink-0">
+                              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                              Alamat Verifikasi Kebenaran Data (Smart Contract):
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <span className="text-cyan-300 font-mono text-[11px] bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 truncate" title={verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}>
+                              {verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCopyUrl(
+                                  verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'
+                                )
+                              }
+                              className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition text-xs flex items-center gap-1 shrink-0"
+                              title="Salin Alamat Smart Contract"
+                            >
+                              {copiedUrl ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span className="text-[10px] font-medium">{copiedUrl ? 'Tersalin' : 'Salin'}</span>
+                            </button>
+                            <a
+                              href={
+                                verifyResult.batch.blockchainExplorerUrl ||
+                                verifyResult.verificationAudit?.blockchainExplorerUrl ||
+                                `https://polygonscan.com/address/${verifyResult.batch.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition text-xs flex items-center gap-1 shrink-0"
+                              title="Buka di Explorer Blockchain"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span className="text-[10px] font-medium">Explorer</span>
+                            </a>
+                          </div>
+
+                          <div className="flex justify-between items-center py-0.5 border-t border-slate-900/80 pt-2.5">
+                            <span className="text-slate-400">Varietas & Generasi:</span>
+                            <span className="text-slate-200 font-medium">
+                              {verifyResult.batch.variety} ({verifyResult.batch.generation})
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center py-0.5 border-t border-slate-900/80 pt-2.5">
+                            <span className="text-slate-400">Produsen / Petani:</span>
+                            <span className="text-slate-200 font-medium">{verifyResult.batch.producerName}</span>
+                          </div>
+                          <div className="flex justify-between items-center py-0.5 border-t border-slate-900/80 pt-2.5">
+                            <span className="text-slate-400">Status & Fase Terakhir:</span>
+                            <span className="text-emerald-400 font-semibold px-2.5 py-0.5 rounded-full text-xs bg-emerald-500/10 border border-emerald-500/30">
+                              {verifyResult.batch.phase}
+                            </span>
+                          </div>
+                          {verifyResult.latestStatus?.location && (
+                            <div className="flex justify-between items-center py-0.5 border-t border-slate-900/80 pt-2.5">
+                              <span className="text-slate-400">Lokasi / Tujuan Terakhir:</span>
+                              <span className="text-slate-200 font-medium">{verifyResult.latestStatus.location}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="text-left bg-gradient-to-r from-red-950/90 via-slate-950 to-slate-950 border border-red-500/60 rounded-2xl p-6 relative overflow-hidden shadow-xl shadow-red-950/40 space-y-4">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-red-500/10 blur-3xl rounded-full pointer-events-none" />
+                        <div className="flex items-start gap-3.5">
+                          <div className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 shrink-0 shadow-md">
+                            <AlertTriangle className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-red-200 uppercase tracking-wide">
+                              PERINGATAN: INDIKASI MANIPULASI DATA DITEMUKAN
+                            </h4>
+                            <p className="text-xs text-red-300/90 mt-1 leading-relaxed">
+                              Data produk ini terindikasi tidak otentik atau telah mengalami inkonsistensi/manipulasi pada beberapa tahapan riwayat.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Metadata Ringkas & Alamat Verifikasi */}
+                        <div className="space-y-3 text-xs md:text-sm pt-4 border-t border-red-900/40">
+                          <div className="flex justify-between items-center py-0.5">
+                            <span className="text-slate-400">Batch Serial ID:</span>
+                            <span className="text-red-300 font-mono font-medium px-2.5 py-1 rounded-lg text-xs bg-slate-900 border border-red-900/50">
+                              {verifyResult.batch.id}
+                            </span>
+                          </div>
+
+                          {/* Alamat Verifikasi Kebenaran Data (Smart Contract Blockchain) */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-t border-slate-900/80 pt-2.5 bg-slate-900/60 px-3.5 rounded-xl border border-slate-800/80">
+                            <span className="text-slate-400 text-xs font-medium flex items-center gap-1.5 shrink-0">
+                              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+                              Alamat Verifikasi Kebenaran Data (Smart Contract):
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <span className="text-cyan-300 font-mono text-[11px] bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 truncate" title={verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}>
+                              {verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleCopyUrl(
+                                  verifyResult.batch.contractAddress || verifyResult.verificationAudit?.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'
+                                )
+                              }
+                              className="p-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 transition text-xs flex items-center gap-1 shrink-0"
+                              title="Salin Alamat Smart Contract"
+                            >
+                              {copiedUrl ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span className="text-[10px] font-medium">{copiedUrl ? 'Tersalin' : 'Salin'}</span>
+                            </button>
+                            <a
+                              href={
+                                verifyResult.batch.blockchainExplorerUrl ||
+                                verifyResult.verificationAudit?.blockchainExplorerUrl ||
+                                `https://polygonscan.com/address/${verifyResult.batch.contractAddress || '0x2AF90cD2b5c73dEbe72d707DF6c3a60e94566A1F'}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition text-xs flex items-center gap-1 shrink-0"
+                              title="Buka di Explorer Blockchain"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span className="text-[10px] font-medium">Explorer</span>
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Indikasi Bagian Terindikasi Palsu */}
+                        {(() => {
+                          const tamperedLogs =
+                            verifyResult.verificationAudit?.auditLogs?.filter((a: any) => !a.isAuthentic) || [];
+                          return (
+                            <div className="pt-4 border-t border-red-800/50">
+                              <h5 className="text-xs font-bold text-red-200 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 text-red-400" />
+                                Bagian / Tahapan yang Terindikasi Palsu:
+                              </h5>
+                              {tamperedLogs.length > 0 ? (
+                                <div className="space-y-2.5">
+                                  {tamperedLogs.map((audit: any, idx: number) => (
+                                    <div
+                                      key={idx}
+                                      className="bg-red-950/60 border border-red-800/80 rounded-xl p-3.5 text-xs text-red-200 shadow-sm"
+                                    >
+                                      <div className="flex items-center justify-between font-semibold text-red-300 pb-1.5 border-b border-red-900/50 mb-1.5">
+                                        <span>⚠️ {audit.event}</span>
+                                        <span className="text-[10px] font-bold text-red-300 bg-red-900/80 px-2 py-0.5 rounded border border-red-700">
+                                          TERINDIKASI PALSU
+                                        </span>
+                                      </div>
+                                      <p className="text-[11px] text-red-300/80 leading-relaxed">
+                                        Terdeteksi inkonsistensi data pada tahapan ini. Catatan fisik tidak sesuai dengan verifikasi otentik awal.
+                                      </p>
+                                      <p className="text-[10px] text-slate-400 mt-1.5 font-mono">
+                                        Waktu Catatan: {new Date(audit.timestamp).toLocaleString('id-ID')}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="bg-red-950/60 border border-red-800/80 rounded-xl p-3 text-xs text-red-300">
+                                  ⚠️ Terdeteksi inkonsistensi pada riwayat data produk.
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
 
                     {/* Timeline Alur Produk */}
                     {verifyResult.timeline && verifyResult.timeline.length > 0 && (
@@ -642,38 +917,66 @@ export default function LandingPage() {
                         </h4>
 
                         <div className="relative pl-6 border-l-2 border-cyan-500/30 space-y-5">
-                          {verifyResult.timeline.map((step: any, index: number) => (
-                            <div key={index} className="relative group bg-slate-900/60 border border-slate-800/70 p-4 rounded-xl hover:border-cyan-500/40 transition">
-                              {/* Node Circle */}
-                              <div className="absolute -left-[33px] top-4 w-4 h-4 rounded-full bg-cyan-400 ring-4 ring-slate-950 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+                          {verifyResult.timeline.map((step: any, index: number) => {
+                            const isStepTampered = verifyResult.verificationAudit?.auditLogs?.some(
+                              (audit: any) =>
+                                !audit.isAuthentic &&
+                                (audit.event?.toLowerCase().includes(step.title?.toLowerCase()) ||
+                                  step.title?.toLowerCase().includes(audit.event?.toLowerCase()) ||
+                                  (audit.event?.includes('Perubahan Fase') && step.stage === 'PERKEMBANGAN_FASE') ||
+                                  (audit.event?.includes('Logistik') && step.stage?.includes('PENGIRIMAN')))
+                            );
 
-                              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                                <span className="font-bold text-xs text-cyan-300">
-                                  {step.title}
-                                </span>
-                                <span className="text-[10px] text-slate-400 font-mono bg-slate-950 border border-slate-800 px-2 py-0.5 rounded">
-                                  {new Date(step.timestamp).toLocaleString('id-ID', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })}
-                                </span>
+                            return (
+                              <div
+                                key={index}
+                                className={`relative group p-4 rounded-xl transition ${isStepTampered
+                                    ? 'bg-red-950/40 border border-red-500/60 shadow-md shadow-red-950/30'
+                                    : 'bg-slate-900/60 border border-slate-800/70 hover:border-cyan-500/40'
+                                  }`}
+                              >
+                                {/* Node Circle */}
+                                <div
+                                  className={`absolute -left-[33px] top-4 w-4 h-4 rounded-full ring-4 ring-slate-950 ${isStepTampered
+                                      ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
+                                      : 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]'
+                                    }`}
+                                />
+
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                  <span
+                                    className={`font-bold text-xs flex items-center gap-2 ${isStepTampered ? 'text-red-400' : 'text-cyan-300'
+                                      }`}
+                                  >
+                                    {step.title}
+                                    {isStepTampered && (
+                                      <span className="text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/40 px-2 py-0.5 rounded-full">
+                                        ⚠️ Terindikasi Data Palsu
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-mono bg-slate-950 border border-slate-800 px-2 py-0.5 rounded">
+                                    {new Date(step.timestamp).toLocaleString('id-ID', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit',
+                                    })}
+                                  </span>
+                                </div>
+
+                                <p className="text-xs text-slate-300 leading-relaxed">{step.description}</p>
+
+                                {step.by && (
+                                  <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                    <span className="text-slate-500">Oleh:</span>
+                                    <span className="text-slate-300 font-medium">{step.by}</span>
+                                  </p>
+                                )}
                               </div>
-
-                              <p className="text-xs text-slate-300 leading-relaxed">
-                                {step.description}
-                              </p>
-
-                              {step.by && (
-                                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                                  <span className="text-slate-500">Oleh:</span>
-                                  <span className="text-slate-300 font-medium">{step.by}</span>
-                                </p>
-                              )}
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -688,42 +991,55 @@ export default function LandingPage() {
       {/* BLOG */}
       <section id="blog" className="py-24 bg-slate-900/20">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-center text-4xl font-bold mb-16">
-            Latest Insights
-          </h2>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
+            <div>
+              <span className="text-cyan-400 uppercase text-xs tracking-widest font-medium block mb-2">
+                Insights & Updates
+              </span>
+              <h2 className="text-3xl font-bold">
+                Kabar & Berita Terbaru
+              </h2>
+            </div>
+            <Link
+              href="/blog"
+              className="inline-flex items-center gap-2 text-cyan-400 font-semibold hover:text-cyan-300 transition text-sm"
+            >
+              Lihat Semua Berita
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
-              <article
-                key={item}
-                className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden hover:-translate-y-1 transition"
-              >
-                <div className="h-48 bg-gradient-to-br from-cyan-500/20 to-blue-500/20" />
+            <LandingBlogCards />
+          </div>
+        </div>
+      </section>
 
-                <div className="p-6">
-                  <div className="flex items-center gap-2 text-cyan-400 text-sm mb-4">
-                    <CalendarDays className="w-4 h-4" />
-                    02 Jun 2026
-                  </div>
-
-                  <h3 className="font-bold text-xl mb-3">
-                    Meningkatkan Transparansi Supply Chain
-                  </h3>
-
-                  <p className="text-slate-400 text-sm mb-6">
-                    Memahami bagaimana blockchain membantu
-                    menjaga integritas data distribusi.
-                  </p>
-
-                  <a
-                    href="#"
-                    className="inline-flex items-center gap-2 text-cyan-400"
-                  >
-                    Baca Selengkapnya
-                    <ArrowRight className="w-4 h-4" />
-                  </a>
-                </div>
-              </article>
+      {/*Our Team */}
+      <section className='py-24 bg-slate-800/50 border-y border-slate-800/50'>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className='flex flex-col items-center justify-center'>
+            <span className="text-cyan-400 uppercase text-xs tracking-widest font-medium block mb-2 text-center">
+              Our Team
+            </span>
+            <h2 className="text-3xl font-bold text-center">
+              Tim Kami
+            </h2>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {members.map((members) => (
+              <div key={members.name} className='flex flex-col items-center'>
+                <Image
+                  src={members.image} className="rounded-full object-cover w-60 h-60 border border-cyan-500/20 hover:border-cyan-400/60 transition"
+                  alt={members.name}
+                  width={200}
+                  height={200}
+                />
+                <h3 className='mt-5 text-xl font-bold'>{members.name}</h3>
+                <p className='text-sm text-slate-400'>{members.role}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -743,26 +1059,18 @@ export default function LandingPage() {
               Tech Indonesia.
             </p>
 
-            <a
-              href="#kontak"
-              className="inline-block bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold"
+            <Link
+              href="/kontak"
+              className="inline-block bg-white text-slate-900 px-8 py-4 rounded-xl font-semibold hover:bg-slate-100 transition"
             >
               Schedule Consultation
-            </a>
+            </Link>
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer
-        id="kontak"
-        className="border-t border-slate-800 py-10 text-center text-slate-500"
-      >
-        <p>
-          © {new Date().getFullYear()} Electra Tech Indonesia.
-          All Rights Reserved.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 }
