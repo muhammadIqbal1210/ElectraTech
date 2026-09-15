@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { API_URL } from '@/lib/api';
 import { CalendarDays, User, Tag, ArrowRight, Newspaper } from 'lucide-react';
 
 type BlogPost = {
@@ -30,7 +31,7 @@ export default function BlogLandingPage() {
     async function fetchBlogs() {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:4000/api/blogs');
+        const res = await fetch(`${API_URL}/api/blogs`);
         const json = await res.json();
         if (json.ok && json.data) {
           setBlogs(json.data);

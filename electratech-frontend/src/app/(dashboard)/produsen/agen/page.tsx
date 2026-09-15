@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Bot, Send, Sparkles, AlertTriangle, ShieldCheck, HelpCircle, Loader2 } from 'lucide-react';
-import { getToken } from '@/lib/api';
+import { getToken, API_URL } from '@/lib/api';
 
 export default function AiAgentPenakarPage() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -34,7 +34,7 @@ export default function AiAgentPenakarPage() {
       setIsLoading(true);
       try {
         const token = getToken();
-        const res = await fetch('http://localhost:4000/api/agent/chat', {
+        const res = await fetch(`${API_URL}/api/agent/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export default function AiAgentPenakarPage() {
     try {
       // 2. Tembak endpoint Express.js Backend (electratech-backend)
       const token = getToken();
-      const res = await fetch('http://localhost:4000/api/agent/chat', {
+      const res = await fetch(`${API_URL}/api/agent/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

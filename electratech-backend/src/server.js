@@ -49,6 +49,6 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Electra Tech API running on http://localhost:${port}`);
+  console.log(`Electra Tech API running on ${process.env.BASE_URL}`);
   startMqttBridge();
 });

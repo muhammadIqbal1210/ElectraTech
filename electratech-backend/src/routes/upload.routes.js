@@ -40,7 +40,7 @@ router.post('/upload', upload.single('image'), (req, res) => {
     return res.status(400).json({ ok: false, message: 'Tidak ada file yang diunggah.' });
   }
 
-  const imageUrl = `http://localhost:4000/uploads/${req.file.filename}`;
+  const imageUrl = `${process.env.BASE_URL}/uploads/${req.file.filename}`;
   res.json({
     ok: true,
     url: imageUrl,

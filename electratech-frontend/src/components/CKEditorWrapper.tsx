@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { API_URL } from '@/lib/api';
 
 interface CKEditorProps {
   value: string;
@@ -21,7 +22,7 @@ class CustomUploadAdapter {
           const data = new FormData();
           data.append('image', file);
 
-          fetch('http://localhost:4000/api/upload', {
+          fetch(`${API_URL}/api/upload`, {
             method: 'POST',
             body: data,
           })

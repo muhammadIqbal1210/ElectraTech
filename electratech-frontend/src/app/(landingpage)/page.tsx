@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { API_URL } from '@/lib/api';
 import {
   ShieldCheck,
   Cpu,
@@ -48,7 +49,7 @@ function LandingBlogCards() {
   useEffect(() => {
     async function fetchLatest() {
       try {
-        const res = await fetch('http://localhost:4000/api/blogs?limit=3');
+        const res = await fetch(`${API_URL}/api/blogs?limit=3`);
         const json = await res.json();
         if (json.ok && json.data) {
           setBlogs(json.data);
@@ -163,7 +164,7 @@ export default function LandingPage() {
     setSearchError(null);
 
     try {
-      const res = await fetch(`http://localhost:4000/api/verify/${encodeURIComponent(query)}`);
+      const res = await fetch(`${API_URL}/api/verify/${encodeURIComponent(query)}`);
       const json = await res.json();
 
       if (!res.ok || !json.ok) {

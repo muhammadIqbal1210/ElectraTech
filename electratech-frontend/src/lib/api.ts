@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000').replace(/\/$/, '');
 
 export type Role = 'ADMIN' | 'PRODUSEN' | 'KURIR';
 
@@ -79,10 +79,10 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}) {
   return payload;
 }
 
-export async function loginUser(username: string, password: string, role: Role) {
+export async function loginUser(username: string, password: string, role?: Role) {
   const payload = await apiRequest<never>('/api/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ username, password, role }),
+    body: JSON.stringify({ username, password, ...(role ? { role } : {}) }),
   });
 
   if (!payload.token || !payload.user) {

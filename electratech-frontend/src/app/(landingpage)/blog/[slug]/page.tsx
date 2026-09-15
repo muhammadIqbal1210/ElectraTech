@@ -5,6 +5,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
+import { API_URL } from '@/lib/api';
 import { CalendarDays, User, ArrowLeft, Tag, Share2 } from 'lucide-react';
 
 type BlogPost = {
@@ -30,7 +31,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
     async function fetchDetail() {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:4000/api/blogs/${resolvedParams.slug}`);
+        const res = await fetch(`${API_URL}/api/blogs/${resolvedParams.slug}`);
         const json = await res.json();
         if (json.ok && json.data) {
           setBlog(json.data);
