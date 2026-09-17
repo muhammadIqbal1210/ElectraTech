@@ -23,3 +23,5 @@ Thumbs.db
 /electratech-blockchain
 docker-compose.yml
 
+*.sql
+*.dump
