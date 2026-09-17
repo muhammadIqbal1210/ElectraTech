@@ -17,3 +17,9 @@
 # Kunci file sampah sistem operasi
 .DS_Store
 Thumbs.db
+/electra_app/*
+/postgres_data
+/mosquitto
+/electratech-blockchain
+docker-compose.yml
+
