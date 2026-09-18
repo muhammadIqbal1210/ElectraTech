@@ -1,0 +1,110 @@
+# ==============================================================================
+# ELECTRATECH - DOCKER COMPOSE CONFIGURATION
+# ==============================================================================
+# Catatan: Buat file .env di direktori root ini (salin dari .env.example)
+# Jalankan perintah: docker compose up -d --build
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # PostgreSQL Database Service
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:latest
+    container_name: electratech-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql
+    networks:
+      - electra-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ----------------------------------------------------------------------------
+  # Eclipse Mosquitto MQTT Broker Service
+  # ----------------------------------------------------------------------------
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: electratech-mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT}:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - electra-network
+
+  # ----------------------------------------------------------------------------
+  # Backend API Service (Express.js)
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./electratech-backend
+      dockerfile: Dockerfile
+    container_name: electratech-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT}:4000"
+    volumes:
+      - ./electratech-backend/uploads:/app/uploads
+    networks:
+      - electra-network
+
+  # ----------------------------------------------------------------------------
+  # Frontend Service (Next.js)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ./electratech-frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    container_name: electratech-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PORT: ${FRONTEND_PORT}
+      NODE_ENV: ${NODE_ENV}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      API_URL: ${API_URL}
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    networks:
+      - electra-network
+
+# # ------------------------------------------------------------------------------
+# # Persistent Volumes & Network Definitions
+# # ------------------------------------------------------------------------------
+# volumes:
+#   postgres_data:
+#     name: electra_postgres_data
+#   mosquitto_data:
+#     name: electra_mosquitto_data
+#   mosquitto_log:
+#     name: electra_mosquitto_log
+#   backend_uploads:
+#     name: electra_backend_uploads
+
+networks:
+  electra-network:
+    name: electra-network
+    driver: bridge

@@ -21,7 +21,6 @@ Thumbs.db
 /postgres_data
 /mosquitto
 /electratech-blockchain
-docker-compose.yml
 
 *.sql
 *.dump
