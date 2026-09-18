@@ -394,175 +394,173 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* OUR ECOSYSTEM / KEY FEATURES (LAYOUT PERSIS GAMBAR, WARNA SELARAS LANDING PAGE) */}
-      <section id="layanan" className="py-24 relative overflow-hidden">
-        {/* Glow Ambient di Background */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[320px] bg-cyan-500/10 blur-[140px] rounded-full pointer-events-none -z-10" />
+      {/* MAIN FEATURES (SESUAI REFERENSI LAYOUT TAPI TETAP DENGAN GAYA ELEGAN ELECTRA TECH) */}
+      <section id="layanan" className="py-20 relative">
+        {/* Ambient Glow */}
+        <div className="absolute top-1/3 left-10 w-96 h-96 bg-cyan-500/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none -z-10" />
 
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Header Section: Pill Tag + Heading + Subheading persis gambar */}
-          <div className="text-center mb-16 flex flex-col items-center">
-            <div className="text-cyan-400 uppercase text-xs tracking-widest block mb-2 font-medium">
-              <span>Main Features</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-3xl font-bold">
-              Key Features of Electra Ecosystem
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Header Section: Di tengah (Centered) */}
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <span className="text-cyan-400 uppercase text-xs tracking-widest block mb-2 font-medium">
+              Features
+            </span>
+            <h2 className="text-3xl sm:text-3xl font-bold text-white mb-3">
+              Main Features of Electra Tech
             </h2>
-
-            <p className="text-slate-400 max-w-xl mx-auto mt-3 text-sm">
-              Solusi Lengkap untuk Ketertelusuran AgriTech, IoT, dan Blockchain
+            <p className="text-slate-400 max-w-xl mx-auto text-sm leading-relaxed">
+              Solusi terintegrasi yang menggabungkan TraceChain Blockchain, telemetri SmartLink IoT, dan AI otomatisasi untuk rantai pasok agrikultur yang transparan dan akuntabel.
             </p>
           </div>
 
-          {/* Grid Layout Persis Gambar: 3 Kolom x 2 Baris Bergaris Pembatas Halus (Tanpa Gambar Thumbnail) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-3xl border border-slate-800/80 bg-[#0d1635]/60 backdrop-blur-md overflow-hidden">
-            {/* Box 1: TraceChain Blockchain */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 md:border-r">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                TraceChain Blockchain
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Infrastruktur ledger terdistribusi di Polygon Network yang mengunci keaslian data tamper-proof dan permanen.
-              </p>
-            </div>
+          {/* 4 Kolom Cards Grid persis referensi dengan style Electra Tech */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            {[
+              {
+                icon: ShieldCheck,
+                title: 'TraceChain Blockchain',
+                desc: 'Pencatatan riwayat siklus benih dan mutasi fase secara tamper-proof pada smart contract Polygon Network.',
+              },
+              {
+                icon: Cpu,
+                title: 'SmartLink IoT Telemetry',
+                desc: 'Monitoring telemetri sensor lingkungan real-time (suhu, kelembaban, pH) serta kontrol aktuator via MQTT.',
+              },
+              {
+                icon: Layers,
+                title: 'Lifecycle & Logistics',
+                desc: 'Pelacakan siklus hidup varietas dan distribusi rantai dingin dengan validasi checkpoint terverifikasi.',
+              },
+              {
+                icon: QrCode,
+                title: 'Instant QR Verification',
+                desc: 'Verifikasi instan keaslian fisik kemasan benih dan riwayat sertifikasi batch hanya dengan memindai QR Code.',
+              },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                className="flex flex-col items-start group"
+              >
+                {/* Rounded Icon Container dengan background yang sama seperti process flow */}
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)] group-hover:scale-105 group-hover:shadow-[0_0_25px_rgba(6,182,212,0.7)] transition-all duration-300 ring-3 ring-[#0b132b] mb-6">
+                  <item.icon className="w-8 h-8 stroke-[2]" />
+                </div>
 
-            {/* Box 2: SmartLink IoT Telemetry */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 lg:border-r">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <Cpu className="w-6 h-6" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                SmartLink IoT Telemetry
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Monitoring telemetri sensor suhu, kelembaban, dan kontrol aktuator otomatis real-time via MQTT.
-              </p>
-            </div>
+                {/* Feature Title */}
+                <h3 className="text-lg font-bold text-white mb-2.5 group-hover:text-cyan-300 transition-colors">
+                  {item.title}
+                </h3>
 
-            {/* Box 3: QR & Ledger Verification */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 md:border-r lg:border-r-0">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <QrCode className="w-6 h-6" />
+                {/* Feature Description */}
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  {item.desc}
+                </p>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                QR & Ledger Verification
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Verifikasi instan keaslian benih dan sertifikasi mutasi fase semai dengan memindai QR code paket.
-              </p>
-            </div>
-
-            {/* Box 4: Cold-Chain Logistics */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b md:border-b-0 border-slate-800/80 lg:border-r">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <Truck className="w-6 h-6" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                Cold-Chain Logistics
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Pelacakan kondisi suhu kontainer kargo dan checkpoint armada kurir secara live selama pengiriman.
-              </p>
-            </div>
-
-            {/* Box 5: AI ElectraAgent Core */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b md:border-b-0 border-slate-800/80 md:border-r">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <Bot className="w-6 h-6" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                AI ElectraAgent Core
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Asisten AI kontekstual untuk analisis anomali sensor lingkungan dan rekomendasi aktuator penangkar.
-              </p>
-            </div>
-
-            {/* Box 6: Batch Lifecycle Tracking */}
-            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300">
-              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
-                <Layers className="w-6 h-6" />
-              </div>
-              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
-                Batch Lifecycle Tracking
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
-                Pencatatan siklus varietas dari semai awal, vegetatif, hingga siap kemas dan siap distribusi.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section id="fitur" className="py-12 bg-slate-800/30 border-y border-slate-800/50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
+      {/* HOW IT WORKS / PROCESS FLOW (VERTICAL ALTERNATING TIMELINE) */}
+      <section id="fitur" className="py-24 bg-slate-900/40 border-y border-slate-800/60 relative overflow-hidden">
+        {/* Ambient Glow Effects */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-500/5 blur-[160px] rounded-full pointer-events-none -z-10" />
+
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="text-center mb-20">
             <span className="text-cyan-400 uppercase text-xs tracking-widest block mb-2 font-medium">
               Process Flow
             </span>
-            <h2 className="text-3xl sm:text-3xl font-bold">
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
               Alur Kerja Electra Tech
             </h2>
-            <p className="text-slate-400 max-w-xl mx-auto mt-3 text-sm">
-              Terdapat 5 tahap utama yang dilalui produk untuk menjamin transparansi dan integritas data dari hulu ke hilir.
+            <p className="text-slate-400 max-w-xl mx-auto text-sm leading-relaxed">
+              5 tahapan komprehensif dari hulu ke hilir untuk menjamin integritas data, ketertelusuran benih, dan transparansi rantai pasok.
             </p>
           </div>
 
-          <div className="relative max-w-5xl mx-auto">
-            {/* Connecting Line across nodes (visible on md screens and up) */}
-            <div className="hidden md:block absolute top-7 left-[8%] right-[8%] h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-400 rounded-full z-0 opacity-70" />
+          <div className="relative">
+            {/* Garis Vertikal Glowing di Tengah (Desktop) / Sisi Kiri (Mobile) */}
+            <div className="absolute top-6 bottom-6 left-6 md:left-1/2 md:-translate-x-1/2 w-0.5 bg-gradient-to-b from-cyan-500 via-blue-500 to-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.6)]" />
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-8 relative z-10">
+            <div className="space-y-12 md:space-y-16">
               {[
                 {
+                  step: '01',
                   icon: ScanLine,
-                  title: 'Register',
-                  text: 'Produk didaftarkan ke sistem dan diberi QR/ID digital unik.',
+                  title: 'Digital Registration',
+                  text: 'Batch produk didaftarkan ke sistem dan diberi QR Code / ID digital unik berstandar GS1 untuk mengunci identitas asal sejak awal persemaian.',
+                  tag: 'Inisialisasi',
                 },
                 {
+                  step: '02',
                   icon: Cpu,
-                  title: 'IoT Monitoring',
-                  text: 'Sensor IoT mencatat suhu, kelembaban, dan kondisi lingkungan.',
+                  title: 'IoT Telemetry Monitoring',
+                  text: 'Sensor SmartLink IoT memantau variabel iklim mikro (suhu udara, kelembaban, pH tanah) secara kontinu dan memicu otomasi aktuator via MQTT.',
+                  tag: 'Monitoring',
                 },
                 {
+                  step: '03',
                   icon: Database,
-                  title: 'Blockchain',
-                  text: 'Data telemetri & transaksi dikunci secara permanen di ledger.',
+                  title: 'Blockchain Data Immutability',
+                  text: 'Data telemetri berkala dan log perpindahan fase benih dicatat ke smart contract Polygon Network, menciptakan audit trail permanen yang anti-manipulasi.',
+                  tag: 'TraceChain Ledger',
                 },
                 {
+                  step: '04',
                   icon: Truck,
-                  title: 'Distribution',
-                  text: 'Produk bergerak terpantau secara real-time sepanjang rantai pasok.',
+                  title: 'Cold-Chain Distribution',
+                  text: 'Armada logistik mendistribusikan benih dengan pemantauan suhu kontainer live dan verifikasi serah-terima di setiap checkpoint rantai pasok.',
+                  tag: 'Logistik',
                 },
                 {
+                  step: '05',
                   icon: ShieldCheck,
-                  title: 'Verification',
-                  text: 'Konsumen & mitra memverifikasi keaslian via scan QR code.',
+                  title: 'Public QR Verification',
+                  text: 'Konsumen, mitra petani, maupun regulator dapat memindai QR Code fisik untuk memverifikasi sertifikasi, keaslian, dan riwayat perjalanan produk secara instan.',
+                  tag: 'Verifikasi',
                 },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  className="flex flex-col items-center text-center group"
-                >
-                  {/* Glowing Circular Node */}
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)] group-hover:scale-110 group-hover:shadow-[0_0_25px_rgba(6,182,212,0.7)] transition-all duration-300 ring-4 ring-[#0b132b] mb-6 relative z-10 shrink-0">
-                    <item.icon className="w-6 h-6 stroke-[2.5]" />
+              ].map((item, idx) => {
+                const isEven = idx % 2 === 1; // Item genap (02, 04) di kanan pada desktop, ganjil (01, 03, 05) di kiri
+                return (
+                  <div
+                    key={idx}
+                    className={`relative flex items-center md:justify-between ${
+                      isEven ? 'md:flex-row-reverse' : 'md:flex-row'
+                    }`}
+                  >
+                    {/* Kolom Konten Kartu */}
+                    <div className="ml-14 md:ml-0 md:w-[44%]">
+                      <div className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-[#0B132B]/80 backdrop-blur-md shadow-xl hover:border-cyan-500/40 hover:shadow-cyan-500/10 transition-all duration-300 group">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+                          <span className="font-mono text-xs font-medium text-slate-500 group-hover:text-cyan-400 transition-colors">
+                            TAHAP {item.step}
+                          </span>
+                        </div>
+
+                        <h3 className="text-base sm:text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">
+                          {item.title}
+                        </h3>
+
+                        <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                          {item.text}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Node Ikon di Tengah Garis Timeline */}
+                    <div className="absolute left-6 md:left-1/2 -translate-x-1/2 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.5)] ring-4 ring-[#070D1E] z-10 transition-transform duration-300 hover:scale-110">
+                        <item.icon className="w-5 h-5 stroke-[2.4]" />
+                      </div>
+                    </div>
+
+                    {/* Kolom Kosong Penyeimbang untuk Sisi Lawan pada Desktop */}
+                    <div className="hidden md:block md:w-[44%]" />
                   </div>
-
-                  <h3 className="font-bold text-base mb-2 text-white group-hover:text-cyan-400 transition-colors">
-                    {item.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-400 leading-relaxed max-w-[180px]">
-                    {item.text}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
