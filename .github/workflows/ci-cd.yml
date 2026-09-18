@@ -131,7 +131,7 @@ jobs:
           key: ${{ secrets.SECRET_ELECTRA }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
-            cd /path/to/Electra
+            cd /var/www/ElectraTech
             git pull origin main
             docker compose down
             docker compose up -d --build
