@@ -13,6 +13,8 @@ services:
     image: postgres:latest
     container_name: electratech-postgres
     restart: unless-stopped
+    env_file:
+      - ./electratech-backend/.env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -60,7 +62,7 @@ services:
       mosquitto:
         condition: service_started
     env_file:
-      - .env
+      - ./electratech-backend/.env
     ports:
       - "${BACKEND_PORT}:4000"
     volumes:
@@ -81,11 +83,8 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    environment:
-      PORT: ${FRONTEND_PORT}
-      NODE_ENV: ${NODE_ENV}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      API_URL: ${API_URL}
+    env_file:
+      - ./electratech-frontend/.env
     ports:
       - "${FRONTEND_PORT}:3000"
     networks:
