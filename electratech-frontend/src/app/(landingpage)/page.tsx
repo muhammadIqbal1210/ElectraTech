@@ -23,6 +23,12 @@ import {
   Copy,
   AlertTriangle,
   ExternalLink,
+  Layers,
+  Sparkles,
+  Activity,
+  FileText,
+  Bot,
+  QrCode,
 } from 'lucide-react';
 
 const members = [
@@ -129,10 +135,9 @@ export default function LandingPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const verifyImages = ['/verify1.png', '/verify2.png', '/verify3.png'];
   const partners = [
-    "/logoelectra.png",
-    "/agrotech.png",
-    "/eratani.png",
-    "/habibigarden.png",
+    "/insightpoll.webp",
+    "/dikti.webp",
+    "/pemprovsumbar.webp",
     "/logomonocrom.png",
   ];
 
@@ -389,113 +394,105 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SERVICES */}
-      <section id="layanan" className="py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <span className="text-cyan-400 uppercase text-xs tracking-widest">
-              Our Ecosystem
-            </span>
+      {/* OUR ECOSYSTEM / KEY FEATURES (LAYOUT PERSIS GAMBAR, WARNA SELARAS LANDING PAGE) */}
+      <section id="layanan" className="py-24 relative overflow-hidden">
+        {/* Glow Ambient di Background */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[320px] bg-cyan-500/10 blur-[140px] rounded-full pointer-events-none -z-10" />
 
-            <h2 className="text-5xl lg:text-3xl font-bold leading-tight">
-              Solusi Digital Terintegrasi
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Header Section: Pill Tag + Heading + Subheading persis gambar */}
+          <div className="text-center mb-16 flex flex-col items-center">
+            <div className="text-cyan-400 uppercase text-xs tracking-widest block mb-2 font-medium">
+              <span>Main Features</span>
+            </div>
+
+            <h2 className="text-3xl sm:text-3xl font-bold">
+              Key Features of Electra Ecosystem
             </h2>
+
+            <p className="text-slate-400 max-w-xl mx-auto mt-3 text-sm">
+              Solusi Lengkap untuk Ketertelusuran AgriTech, IoT, dan Blockchain
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* TraceChain */}
-            <div className="bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 blur-3xl rounded-full group-hover:bg-cyan-500/20 transition-all" />
-              <div>
-                {/* Tambahkan 'p-0' agar tidak ada padding dalam box */}
-                <div className="relative w-full h-40 bg-slate-950/60 rounded-2xl flex items-center justify-center border border-slate-800/80 mb-6 group-hover:border-cyan-500/30 transition-colors overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent opacity-60 z-10" />
-                  {/* Menggunakan fill & object-cover */}
-                  <Image
-                    src="/trace.png"
-                    alt="TraceChain Logo Electra"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold">TraceChain</h3>
-                </div>
-
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                  Infrastruktur blockchain yang menjaga integritas data rantai pasok secara permanen serta transparan.
-                </p>
+          {/* Grid Layout Persis Gambar: 3 Kolom x 2 Baris Bergaris Pembatas Halus (Tanpa Gambar Thumbnail) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 rounded-3xl border border-slate-800/80 bg-[#0d1635]/60 backdrop-blur-md overflow-hidden">
+            {/* Box 1: TraceChain Blockchain */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 md:border-r">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800/80">
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Immutable Data</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">QR Verification</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Real-Time Tracking</span>
-              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                TraceChain Blockchain
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Infrastruktur ledger terdistribusi di Polygon Network yang mengunci keaslian data tamper-proof dan permanen.
+              </p>
             </div>
 
-            {/* SmartLink IoT */}
-            <div className="bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-3xl rounded-full group-hover:bg-blue-500/20 transition-all" />
-              <div>
-                <div className="relative w-full h-40 bg-slate-950/60 rounded-2xl flex items-center justify-center border border-slate-800/80 mb-6 group-hover:border-cyan-500/30 transition-colors overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-60 z-10" />
-                  <Image
-                    src="/iot.jpg"
-                    alt="SmartLink IoT Logo Electra"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold">SmartLink IoT</h3>
-                </div>
-
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                  Monitoring suhu, kelembaban, dan kondisi lingkungan secara real-time untuk menjamin kualitas produk sepanjang rantai pasok.
-                </p>
+            {/* Box 2: SmartLink IoT Telemetry */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 lg:border-r">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <Cpu className="w-6 h-6" />
               </div>
-
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800/80">
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Live Sensors</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Telemetry</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Auto Alert</span>
-              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                SmartLink IoT Telemetry
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Monitoring telemetri sensor suhu, kelembaban, dan kontrol aktuator otomatis real-time via MQTT.
+              </p>
             </div>
 
-            {/* Supply Chain Core */}
-            <div className="bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group relative overflow-hidden">
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 blur-3xl rounded-full group-hover:bg-emerald-500/20 transition-all" />
-              <div>
-                <div className="relative w-full h-40 bg-slate-950/60 rounded-2xl flex items-center justify-center border border-slate-800/80 mb-6 group-hover:border-cyan-500/30 transition-colors overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-60 z-10" />
-                  <Image
-                    src="/supply.png"
-                    alt="Supply Chain Core Logo Electra"
-                    fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-2xl font-bold">Supply Chain Core</h3>
-                </div>
-
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                  Dashboard untuk analisis distribusi, optimalisasi rute logistik, dan transparansi pengiriman dari hulu ke hilir.
-                </p>
+            {/* Box 3: QR & Ledger Verification */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b border-slate-800/80 md:border-r lg:border-r-0">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <QrCode className="w-6 h-6" />
               </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                QR & Ledger Verification
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Verifikasi instan keaslian benih dan sertifikasi mutasi fase semai dengan memindai QR code paket.
+              </p>
+            </div>
 
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800/80">
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Analytics</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">Route Optimization</span>
-                <span className="text-xs bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">End-to-End</span>
+            {/* Box 4: Cold-Chain Logistics */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b md:border-b-0 border-slate-800/80 lg:border-r">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <Truck className="w-6 h-6" />
               </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                Cold-Chain Logistics
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Pelacakan kondisi suhu kontainer kargo dan checkpoint armada kurir secara live selama pengiriman.
+              </p>
+            </div>
+
+            {/* Box 5: AI ElectraAgent Core */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300 border-b md:border-b-0 border-slate-800/80 md:border-r">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <Bot className="w-6 h-6" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                AI ElectraAgent Core
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Asisten AI kontekstual untuk analisis anomali sensor lingkungan dan rekomendasi aktuator penangkar.
+              </p>
+            </div>
+
+            {/* Box 6: Batch Lifecycle Tracking */}
+            <div className="p-8 sm:p-12 flex flex-col items-center text-center group hover:bg-slate-900/50 transition-all duration-300">
+              <div className="w-14 h-14 rounded-full bg-[#131d42] border border-slate-700/70 flex items-center justify-center text-slate-300 mb-6 group-hover:scale-110 group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-all shadow-md">
+                <Layers className="w-6 h-6" />
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-white mb-3 group-hover:text-cyan-300 transition-colors">
+                Batch Lifecycle Tracking
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-xs">
+                Pencatatan siklus varietas dari semai awal, vegetatif, hingga siap kemas dan siap distribusi.
+              </p>
             </div>
           </div>
         </div>
@@ -932,15 +929,15 @@ export default function LandingPage() {
                               <div
                                 key={index}
                                 className={`relative group p-4 rounded-xl transition ${isStepTampered
-                                    ? 'bg-red-950/40 border border-red-500/60 shadow-md shadow-red-950/30'
-                                    : 'bg-slate-900/60 border border-slate-800/70 hover:border-cyan-500/40'
+                                  ? 'bg-red-950/40 border border-red-500/60 shadow-md shadow-red-950/30'
+                                  : 'bg-slate-900/60 border border-slate-800/70 hover:border-cyan-500/40'
                                   }`}
                               >
                                 {/* Node Circle */}
                                 <div
                                   className={`absolute -left-[33px] top-4 w-4 h-4 rounded-full ring-4 ring-slate-950 ${isStepTampered
-                                      ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
-                                      : 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]'
+                                    ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.7)]'
+                                    : 'bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.5)]'
                                     }`}
                                 />
 

@@ -156,8 +156,8 @@ export default function AiAgentPenakarPage() {
             >
               <div
                 className={`max-w-[85%] rounded-2xl border p-4 text-sm leading-relaxed shadow-sm ${msg.sender === 'user'
-                    ? 'rounded-tr-none border-purple-500/20 bg-purple-600 text-white whitespace-pre-line'
-                    : 'rounded-tl-none border-slate-800 bg-slate-900 text-slate-300'
+                  ? 'rounded-tr-none border-purple-500/20 bg-purple-600 text-white whitespace-pre-line'
+                  : 'rounded-tl-none border-slate-800 bg-slate-900 text-slate-300'
                   }`}
               >
                 {msg.sender === 'agent' ? (

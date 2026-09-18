@@ -2,16 +2,19 @@
 const { GoogleGenAI } = require('@google/genai');
 const pool = require('../config/db'); // Koneksi pg pool Anda
 
-// Fungsi pembantu untuk Retry jika terjadi Rate Limit (429)
-const callGeminiWithRetry = async (fn, retries = 2, delay = 3000) => {
+// Fungsi pembantu untuk Retry jika terjadi Rate Limit (429) atau Server Overload / High Demand (503)
+const callGeminiWithRetry = async (fn, retries = 2, delay = 2000) => {
   try {
     return await fn();
   } catch (error) {
-    const isRateLimit = error.status === 429 || (error.message && error.message.includes('429'));
-    if (isRateLimit && retries > 0) {
-      console.warn(`[Gemini API] Rate limit (429) tercapai. Mencoba lagi dalam ${delay / 1000} detik...`);
+    const status = error.status || (error.error && error.error.code);
+    const msg = error.message || '';
+    const isRetryable = status === 429 || status === 503 || msg.includes('429') || msg.includes('503') || msg.includes('high demand') || msg.includes('UNAVAILABLE');
+
+    if (isRetryable && retries > 0) {
+      console.warn(`[Gemini API] Kendala sementara (${status || 'Spike Demand'}). Mencoba lagi dalam ${delay / 1000} detik... (Sisa retry: ${retries})`);
       await new Promise(resolve => setTimeout(resolve, delay));
-      return callGeminiWithRetry(fn, retries - 1, delay * 2);
+      return callGeminiWithRetry(fn, retries - 1, delay * 1.5);
     }
     throw error;
   }
@@ -333,10 +336,12 @@ ${systemContext}
 
   } catch (error) {
     console.error('Gemini API Error:', error);
-    
+
     let errorMsg = error.message || 'Error tidak diketahui';
     if (error.status === 429 || errorMsg.includes('429')) {
       errorMsg = 'Batas penggunaan AI (Rate Limit) tercapai. Harap tunggu 1 menit lalu coba lagi.';
+    } else if (error.status === 503 || errorMsg.includes('503') || errorMsg.includes('high demand') || errorMsg.includes('UNAVAILABLE')) {
+      errorMsg = 'Server Google AI sedang mengalami lonjakan beban (High Demand). Sistem otomatis mencoba alternatif, silakan coba beberapa detik lagi.';
     } else if (error.status === 404 || errorMsg.includes('404')) {
       errorMsg = 'Model AI tidak ditemukan atau tidak tersedia untuk API Key Anda.';
     }
@@ -345,4 +350,136 @@ ${systemContext}
   }
 };
 
-module.exports = { getAgentResponse };
+/**
+ * AI Chatbot Publik untuk Halaman Depan / Landing Page
+ * - TIDAK MENGAMBIL DATA DARI DATABASE (Zero database queries, no private data)
+ * - Khusus menjawab seputar layanan, fitur, dan modul sistem Electra Tech
+ * - MENOLAK KERAS:
+ *   1. Permintaan pembuatan kode / coding (HTML, Python, JS, smart contract, dll)
+ *   2. Pertanyaan umum/random di luar sistem (resep masakan, politik, matematika, dll)
+ *   3. Permintaan data internal/database (suruh login ke dashboard jika butuh data akun)
+ */
+const getPublicAgentResponse = async (message, history = []) => {
+  const publicSystemInstruction = `
+Kamu adalah ElectraBot, asisten virtual resmi untuk platform Electra Tech Indonesia.
+
+TUGAS UTAMA:
+Menjawab pertanyaan pengunjung seputar layanan, arsitektur solusi, dan teknologi yang disediakan oleh Electra Tech Indonesia.
+
+LAYANAN & FITUR UTAMA ELECTRA TECH:
+1. TraceChain Blockchain:
+   - Infrastruktur pencatatan ledger digital terdistribusi di Polygon Network.
+   - Mengamankan riwayat sertifikasi, mutasi fase budidaya benih, dan data logistik secara permanen (immutable & anti-manipulasi).
+2. SmartLink IoT Control:
+   - Pemantauan telemetri sensor lingkungan (suhu udara, kelembaban, pH/nutrisi) secara real-time.
+   - Otomatisasi pengendalian aktuator cerdas (pompa air/nutrisi, exhaust fan, misting) menggunakan protokol MQTT.
+3. Supply Chain Core & Cold-Chain Tracking:
+   - Manajemen manifest pengiriman paket dari penangkar/produsen ke kurir dan agen.
+   - Pemantauan kondisi muatan, suhu box kontainer, dan checkpoint kurir secara live.
+4. QR Code & Ledger Verification:
+   - Konsumen, mitra tani, dan agen dapat memindai QR Code atau memasukkan nomor resi/ID batch di landing page untuk memverifikasi keaslian dan riwayat benih dari hulu ke hilir.
+5. AI ElectraAgent (Core):
+   - Modul kecerdasan buatan di dashboard produsen untuk memantau tren telemetri dan deteksi anomali pertumbuhan bibit.
+
+BATASAN & ATURAN KETAT (WAJIB DIPATUHI):
+1. DILARANG MEMBERIKAN KODE PEMROGRAMAN:
+   - Jika pengguna meminta pembuatan kode program (seperti JavaScript, Python, Solidity, script, SQL, HTML, atau instruksi coding apapun), TOLAK DENGAN SOPAN:
+   "Maaf, saya tidak dapat membantu pembuatan kode pemrograman. Saya di sini khusus untuk memberikan informasi seputar layanan dan solusi sistem Electra Tech."
+2. TIDAK MENGAMBIL / MEMILIKI AKSES DATABASE:
+   - Kamu tidak terhubung ke database dan tidak menyimpan data pengguna spesifik.
+   - Jika pengguna menanyakan data transaksi spesifik, status batch akun mereka, atau data internal, jelaskan:
+   "Saya tidak memiliki akses ke database pengguna. Untuk melihat data operasional atau batch Anda, silakan login ke dashboard sistem Electra Tech."
+3. TOLAK PERTANYAAN DI LUAR SISTEM (OUT OF CONTEXT / RANDOM):
+   - Jika ditanya hal umum/acak di luar sistem Electra Tech (seperti resep masakan, politik, lelucon, selebriti, cuaca dunia, tugas sekolah umum, dll), TOLAK DENGAN SINGKAT:
+   "Maaf, pertanyaan tersebut di luar lingkup sistem Electra Tech. Saya hanya dapat menjawab pertanyaan seputar layanan SmartLink IoT, TraceChain Blockchain, dan sistem agritech Electra Tech."
+4. GAYA BAHASA:
+   - Ramah, profesional, ringkas, dan jelas dalam Bahasa Indonesia.
+   - Gunakan format Markdown (bold, bullet points) agar mudah dibaca.
+`;
+
+  const fallbackPublicOffline = (msg) => {
+    const text = msg.toLowerCase();
+
+    // 1. Deteksi permintaan kode
+    const codePatterns = ['bikin kode', 'buatkan kode', 'coding', 'script', 'buatkan script', 'program python', 'buatkan fungsi', 'buatkan query'];
+    if (codePatterns.some((p) => text.includes(p))) {
+      return 'Maaf, saya tidak dapat membantu pembuatan kode pemrograman. Saya di sini khusus untuk memberikan informasi seputar layanan dan solusi sistem Electra Tech.';
+    }
+
+    // 2. Deteksi out of scope random
+    const outOfScope = ['resep', 'masak', 'makanan', 'politik', 'presiden', 'cuaca', 'lagu', 'artis', 'game', 'lelucon', 'lucu', 'matematika'];
+    if (outOfScope.some((p) => text.includes(p))) {
+      return 'Maaf, pertanyaan tersebut di luar lingkup sistem Electra Tech. Saya hanya dapat menjawab pertanyaan seputar layanan SmartLink IoT, TraceChain Blockchain, dan sistem agritech Electra Tech.';
+    }
+
+    // 3. Respon seputar layanan sistem
+    if (text.includes('blockchain') || text.includes('ledger') || text.includes('tracechain')) {
+      return 'TraceChain Blockchain di Electra Tech mencatat setiap mutasi fase bibit dan pengiriman ke smart contract Polygon Network, menjamin transparansi data yang permanen dan anti-manipulasi.';
+    }
+    if (text.includes('iot') || text.includes('sensor') || text.includes('smartlink') || text.includes('aktuator')) {
+      return 'SmartLink IoT memantau kondisi lingkungan budidaya (suhu, kelembaban, pH) secara real-time dan mengontrol aktuator (pompa, misting, fan) secara otomatis via protokol MQTT.';
+    }
+    if (text.includes('qr') || text.includes('verifikasi') || text.includes('lacak') || text.includes('resi')) {
+      return 'Layanan verifikasi QR Code memungkinkan siapa saja memindai barcode fisik pada kemasan benih untuk melihat sertifikasi keaslian dan riwayat perjalanan dari persemaian hingga pengiriman.';
+    }
+    if (text.includes('layanan') || text.includes('fitur') || text.includes('sistem')) {
+      return 'Electra Tech menyediakan 3 pilar layanan utama:\n1. **TraceChain Blockchain**: Pencatatan riwayat benih permanen.\n2. **SmartLink IoT**: Telemetri sensor & kontrol aktuator otomatis.\n3. **Supply Chain Core**: Pelacakan logistik kargo & verifikasi QR Code.';
+    }
+
+    return 'Selamat datang di Electra Tech! Ada yang bisa saya bantu terkait layanan SmartLink IoT, TraceChain Blockchain, atau sistem verifikasi benih kami?';
+  };
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'YOUR_API_KEY') {
+    return fallbackPublicOffline(message);
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    // Batasi 4 percakapan terakhir agar fokus dan hemat token
+    const recentHistory = (history || []).slice(-4);
+    const formattedHistory = recentHistory.map((h) => ({
+      role: h.sender === 'user' ? 'user' : 'model',
+      parts: [{ text: h.text }],
+    }));
+
+    const callWithModel = async (modelName) => {
+      const chat = ai.chats.create({
+        model: modelName,
+        config: {
+          systemInstruction: publicSystemInstruction,
+          temperature: 0.2,
+        },
+        history: formattedHistory,
+      });
+
+      const result = await chat.sendMessage({
+        message,
+      });
+
+      return result.text;
+    };
+
+    return await callGeminiWithRetry(async () => {
+      try {
+        const text = await callWithModel('gemini-3.6-flash');
+        return text || fallbackPublicOffline(message);
+      } catch (err) {
+        const isUnavailable = err.status === 503 || (err.message && err.message.includes('503'));
+        if (isUnavailable) {
+          console.warn('[Gemini API] gemini-3.6-flash sedang high demand (503), mencoba fallback model gemini-2.5-flash-lite...');
+          const altText = await callWithModel('gemini-3.5-flash-lite');
+          return altText || fallbackPublicOffline(message);
+        }
+        throw err;
+      }
+    });
+  } catch (error) {
+    console.error('Public Gemini API Error:', error);
+    // Kembalikan jawaban informatif dari fallback sistem agar pengunjung tetap mendapatkan jawaban
+    return fallbackPublicOffline(message);
+  }
+};
+
+module.exports = { getAgentResponse, getPublicAgentResponse };
