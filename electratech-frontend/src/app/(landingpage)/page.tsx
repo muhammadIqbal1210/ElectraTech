@@ -138,7 +138,9 @@ export default function LandingPage() {
     "/insightpoll.webp",
     "/dikti.webp",
     "/pemprovsumbar.webp",
-    "/logomonocrom.png",
+    "/logoelectra.png",
+    "/kemendikbud.webp",
+    "/pbmbt.webp"
   ];
 
   // Database verification state
@@ -288,18 +290,16 @@ export default function LandingPage() {
 
           {/* RIGHT */}
           <div className="relative flex justify-center">
-            <div className="relative w-full max-w-[520px] rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl p-4 sm:p-6">
               <Image
-                src="/preview.png"
+                src="/hero.webp"
                 alt="Electra"
                 width={700}
                 height={700}
                 priority
                 style={{ height: 'auto' }}
-                className="w-full h-auto object-contain border border-slate-800 rounded-2xl"
               />
 
-              {/* Floating Card */}
+              {/* Floating Card
               <div className="absolute -top-6 -left-2 sm:-left-6 bg-slate-950 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl">
                 <p className="text-[10px] sm:text-xs text-slate-500">
                   Blockchain Status
@@ -307,17 +307,16 @@ export default function LandingPage() {
                 <p className="text-xs sm:text-sm text-emerald-400 font-semibold">
                   Verified
                 </p>
-              </div>
+              </div> */}
 
-              <div className="absolute bottom-10 -right-2 sm:-right-6 bg-slate-950 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl">
+              {/* <div className="absolute bottom-10 -right-2 sm:-right-6 bg-slate-950 border border-slate-800 rounded-2xl p-3 sm:p-4 shadow-xl">
                 <p className="text-[10px] sm:text-xs text-slate-500">
                   Temperature
                 </p>
                 <p className="text-xs sm:text-sm text-cyan-400 font-semibold">
                   4.2°C Stable
                 </p>
-              </div>
-            </div>
+              </div> */}
           </div>
         </div>
       </section>
