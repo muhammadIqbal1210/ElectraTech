@@ -51,7 +51,7 @@ export default function Footer() {
                 <Link href="/#fitur" className="hover:text-cyan-400 transition">Fitur Utama</Link>
               </li>
               <li>
-                <Link href="/#tracking" className="hover:text-cyan-400 transition">Lacak Produk</Link>
+                <Link href="/verify" className="hover:text-cyan-400 transition">Lacak Produk</Link>
               </li>
               <li>
                 <Link href="/blog" className="hover:text-cyan-400 transition">Berita & Insights</Link>
