@@ -324,96 +324,107 @@ export default function DashboardPenakar() {
   }, [iotLogs]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* 1. WELCOME HEADER CARD */}
-      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
-        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
-          Selamat Datang, Penakar Benih
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Pantau ringkasan metrik dan aktivitas sistem Anda hari ini secara real-time dari database.
-        </p>
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg relative overflow-hidden">
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Node Penakar Aktif
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+              Selamat Datang, Penakar Benih
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
+              Pantau ringkasan metrik budidaya, telemetri SmartIoT, dan rantai pasok secara real-time.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* 2. METRICS OVERVIEW CARDS (4 COLUMNS GRID) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. METRICS OVERVIEW CARDS (2 COLUMNS DI MOBILE, 4 COLUMNS DI DESKTOP) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Total Perangkat Terdaftar */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0">
             <Cpu className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase">Total Perangkat Terdaftar</p>
-            <p className="text-xl font-bold text-white mt-0.5">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Perangkat</p>
+            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
               {loading ? '...' : `${totalDevicesCount} Unit`}
             </p>
-            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">
-              {totalDevicesCount > 0 ? 'Terkoneksi Database' : 'Belum ada perangkat'}
+            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">
+              {totalDevicesCount > 0 ? 'Terkoneksi' : 'Belum ada'}
             </p>
           </div>
         </div>
 
         {/* Card 2: Total Sensor Terdaftar */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
             <Radio className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase">Total Sensor Terdaftar</p>
-            <p className="text-xl font-bold text-white mt-0.5">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Sensor Aktif</p>
+            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
               {loading ? '...' : `${totalSensorsCount} Sensor`}
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Modul Aktif Pemantauan</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">Modul Pantau</p>
           </div>
         </div>
 
         {/* Card 3: Total Batch / Tanaman */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
             <Sprout className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase">Total Batch / Tanaman</p>
-            <p className="text-xl font-bold text-white mt-0.5">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Batch Benih</p>
+            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
               {loading ? '...' : `${totalBatchesCount} Batch`}
             </p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Dalam Perawatan & Ledger</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">Dalam Ledger</p>
           </div>
         </div>
 
         {/* Card 4: Batch Dalam Pengiriman */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-amber-400 shrink-0">
             <Truck className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase">Batch Dalam Pengiriman</p>
-            <p className="text-xl font-bold text-white mt-0.5">
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Pengiriman</p>
+            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
               {loading ? '...' : `${shipmentBatchesCount} Batch`}
             </p>
-            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">
-              {shipmentBatchesCount > 0 ? 'Siap / Sedang dikirim' : 'Tidak ada pengiriman'}
+            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">
+              {shipmentBatchesCount > 0 ? 'Sedang dikirim' : 'Nihil'}
             </p>
           </div>
         </div>
       </div>
 
       {/* 3. MAIN CONTENT GRID (LEFT: AKTIVITAS TERBARU, RIGHT: REKOMENDASI AI) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* LEFT COLUMN: AKTIVITAS TERBARU (2/3 Width) */}
-        <div className="lg:col-span-2 bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col justify-between">
           <div>
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-4 sm:mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white tracking-tight">Aktivitas Terbaru</h2>
+                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Aktivitas Terbaru</h2>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Catatan aktivitas batch, logistik, tracking, dan kontrol actuator.
                 </p>
               </div>
-              <Activity className="w-5 h-5 text-emerald-400" />
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                <Activity className="w-4 h-4" />
+              </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {loading ? (
                 <div className="p-8 text-center text-slate-500 text-xs font-medium">
                   Memuat data aktivitas terbaru...
@@ -426,20 +437,20 @@ export default function DashboardPenakar() {
                 recentActivities.map((act) => (
                   <div
                     key={act.id}
-                    className="flex items-center justify-between p-3.5 rounded-xl hover:bg-slate-900/60 transition-colors"
+                    className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl bg-[#090C1A]/60 border border-slate-800/60 hover:bg-slate-900/60 transition-colors gap-3"
                   >
-                    <div className="flex items-center gap-3.5">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-10 h-10 rounded-full font-bold text-xs flex items-center justify-center shrink-0 shadow-md ${act.initialBg}`}
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 shadow-md ${act.initialBg}`}
                       >
                         {act.initial}
                       </div>
-                      <div>
-                        <h3 className="font-bold text-sm text-white">{act.title}</h3>
-                        <p className="text-xs text-slate-400 mt-0.5">{act.description}</p>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-xs sm:text-sm text-white truncate">{act.title}</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">{act.description}</p>
                       </div>
                     </div>
-                    <span className={`text-xs font-semibold ${act.badgeColor}`}>
+                    <span className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-900/80 border border-slate-800 shrink-0 ${act.badgeColor}`}>
                       {act.badge}
                     </span>
                   </div>
@@ -450,16 +461,16 @@ export default function DashboardPenakar() {
         </div>
 
         {/* RIGHT COLUMN: REKOMENDASI AI CARD (1/3 Width) */}
-        <div className="bg-gradient-to-b from-[#2A33A8] via-[#1E237A] to-[#121652] border border-indigo-500/30 rounded-2xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-xl min-h-[360px]">
+        <div className="bg-gradient-to-b from-[#2A33A8] via-[#1E237A] to-[#121652] border border-indigo-500/30 rounded-2xl p-5 sm:p-8 flex flex-col items-center justify-center text-center relative overflow-hidden shadow-xl min-h-[300px] sm:min-h-[360px]">
           <div className="absolute -top-12 -right-12 w-44 h-44 bg-indigo-400/10 blur-3xl rounded-full pointer-events-none" />
 
           {/* AI Circle Icon */}
-          <div className="w-14 h-14 rounded-full bg-[#0A0D23]/90 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shadow-xl mb-5">
-            <Bot className="w-7 h-7 text-indigo-300" />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0A0D23]/90 border border-indigo-400/30 flex items-center justify-center text-indigo-300 shadow-xl mb-4 sm:mb-5">
+            <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-300" />
           </div>
 
-          <h3 className="text-lg font-extrabold text-white mb-2 tracking-tight">Rekomendasi AI</h3>
-          <p className="text-xs text-indigo-100/90 leading-relaxed max-w-xs mb-8">
+          <h3 className="text-base sm:text-lg font-extrabold text-white mb-2 tracking-tight">Rekomendasi AI Penakar</h3>
+          <p className="text-xs text-indigo-100/90 leading-relaxed max-w-xs mb-6 sm:mb-8">
             {latestMoistureLog
               ? `Kelembapan tanah saat ini terpantau (${latestMoistureLog.value}). ${
                   Number(latestMoistureLog.value.replace(/[^0-9.]/g, '')) < 60
@@ -473,9 +484,9 @@ export default function DashboardPenakar() {
 
           <Link
             href="/produsen/agen"
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-2.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all shadow-md hover:scale-105"
+            className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-2.5 rounded-full text-xs font-semibold backdrop-blur-md transition-all shadow-md hover:scale-105 active:scale-95 text-center"
           >
-            Lihat selengkapnya
+            Buka Chat AI Agent
           </Link>
         </div>
       </div>

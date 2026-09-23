@@ -236,21 +236,21 @@ export default function PendaftaranBatchPage() {
   };
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="space-y-4 md:space-y-6 text-slate-100">
       {/* 1. HEADER TITLE & ACTION BUTTON */}
-      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
             Pendaftaran Batch Benih
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Inisiasi siklus budidaya batch tanaman.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Inisiasi siklus budidaya batch tanaman & kunci hash ledger.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="bg-emerald-500 hover:bg-emerald-400 text-slate-200 font-medium px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs shrink-0"
+          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-3 sm:py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs shrink-0 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer"
         >
           <FolderPlus className="w-4 h-4" />Registrasi Batch Baru
         </button>
@@ -266,41 +266,41 @@ export default function PendaftaranBatchPage() {
         </div>
       )}
 
-      {/* 2. METRICS OVERVIEW CARDS (3 COLUMNS GRID) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* 2. METRICS OVERVIEW CARDS (RESPONSIVE GRID) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Card 1: Total Akumulasi Batch */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase">TOTAL AKUMULASI BATCH</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{totalAccumulatedBatches}</p>
-            <p className="text-xs text-slate-400 mt-1">Batch</p>
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider">TOTAL AKUMULASI BATCH</p>
+            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{totalAccumulatedBatches}</p>
+            <p className="text-xs text-slate-400 mt-1">Batch Terdaftar</p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-            <Layers className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+            <Layers className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* Card 2: Jumlah Bibit */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">JUMLAH BIBIT</p>
-            <p className="text-2xl font-bold text-white mt-1">{totalSeeds.toLocaleString('id-ID')}</p>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">JUMLAH BIBIT</p>
+            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{totalSeeds.toLocaleString('id-ID')}</p>
             <p className="text-xs text-slate-400 mt-1">Bibit Terdaftar</p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-            <Sprout className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
+            <Sprout className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 
         {/* Card 3: Update Terakhir */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">UPDATE TERAKHIR</p>
-            <p className="text-sm text-white mt-1">{latestUpdateDate}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">UPDATE TERAKHIR</p>
+            <p className="text-xs sm:text-sm font-semibold text-white mt-1 truncate">{latestUpdateDate}</p>
             <p className="text-xs text-slate-400 mt-1">Sinkronisasi history batch</p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
-            <RefreshCw className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
+            <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
       </div>
@@ -487,20 +487,20 @@ export default function PendaftaranBatchPage() {
 
       {/* MODAL REGISTRASI BATCH BARU */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="bg-[#0D1123] border border-slate-700 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl space-y-6 p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0D1123] border border-slate-700/80 rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl space-y-5 p-5 sm:p-6">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <FolderPlus className="w-4 h-4" />
                 </div>
-                <h3 className="font-semibold text-base text-white">Registrasi Batch Benih Baru</h3>
+                <h3 className="font-bold text-sm sm:text-base text-white">Registrasi Batch Benih Baru</h3>
               </div>
               <button
                 type="button"
                 onClick={() => !isSubmitting && setIsModalOpen(false)}
                 disabled={isSubmitting}
-                className="text-slate-400 hover:text-white p-1 rounded-lg transition disabled:cursor-not-allowed disabled:opacity-50"
+                className="text-slate-400 hover:text-white p-2 rounded-xl transition disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Tutup form registrasi"
               >
                 <X className="w-5 h-5" />
@@ -515,12 +515,12 @@ export default function PendaftaranBatchPage() {
                   value={variety}
                   onChange={(e) => setVariety(e.target.value)}
                   placeholder="Misal: Tomat Cherry TCRR / Cabai Rawit CRP"
-                  className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1.5">Generasi Benih *</label>
                   <input
@@ -528,7 +528,7 @@ export default function PendaftaranBatchPage() {
                     value={generation}
                     onChange={(e) => setGeneration(e.target.value)}
                     placeholder="Misal: F1, F2, G1"
-                    className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
                     required
                   />
                 </div>
@@ -540,7 +540,7 @@ export default function PendaftaranBatchPage() {
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="1000"
                     min={1}
-                    className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
                     required
                   />
                 </div>
@@ -552,23 +552,23 @@ export default function PendaftaranBatchPage() {
                   type="date"
                   value={seededAt}
                   onChange={(e) => setSeededAt(e.target.value)}
-                  className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-[#070913] border border-slate-800 rounded-xl px-3.5 py-3 text-slate-100 text-sm focus:outline-none focus:border-emerald-500"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-3">
+              <div className="pt-4 border-t border-slate-800 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => !isSubmitting && setIsModalOpen(false)}
                   disabled={isSubmitting}
-                  className="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 font-semibold hover:text-white transition disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full sm:w-auto px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 font-semibold hover:text-white transition disabled:cursor-not-allowed disabled:opacity-50 text-center"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold transition disabled:cursor-not-allowed disabled:bg-emerald-800 disabled:text-emerald-200 disabled:shadow-none"
+                  className="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition disabled:cursor-not-allowed disabled:bg-emerald-800 disabled:text-emerald-200 shadow-lg shadow-emerald-500/20 active:scale-95"
                 >
                   {isSubmitting ? 'Sedang menyimpan...' : 'Kunci & Daftarkan Batch'}
                 </button>

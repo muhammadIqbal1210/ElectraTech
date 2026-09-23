@@ -27,6 +27,9 @@ import {
   Sprout,
   User,
   Users,
+  X,
+  Layers,
+  ChevronUp,
 } from 'lucide-react';
 import { apiRequest, ApiUser, clearSession, getStoredUser, getToken, Role } from '@/lib/api';
 
@@ -66,6 +69,15 @@ const menuByRole = {
   },
 };
 
+// Item prioritas untuk Bottom Navigation Bar khusus role Produsen di Mobile
+const produsenMobileBottomTabs = [
+  { name: 'Beranda', href: '/produsen', icon: LayoutDashboard },
+  { name: 'IoT', href: '/produsen/smartiot', icon: Cpu },
+  { name: 'Batch', href: '/produsen/batch/create', icon: FolderPlus },
+  { name: 'Kirim', href: '/produsen/pengiriman', icon: PackageCheck },
+  { name: 'AI Agent', href: '/produsen/agen', icon: Bot },
+];
+
 function getCurrentRole(pathname: string) {
   if (pathname.startsWith('/admin')) return 'admin';
   if (pathname.startsWith('/kurir')) return 'kurir';
@@ -100,8 +112,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [user, setUser] = useState<ApiUser | null>(null);
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Tutup mobile drawer saat rute berubah
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -167,6 +184,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
+
   const getInitial = (name: string | undefined) => {
     if (!name) return 'U';
     return name.charAt(0).toUpperCase();
@@ -174,14 +192,109 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#070913] text-slate-100 font-sans">
-      {/* Sidebar Navigation (Left) */}
+      {/* 1. Backdrop Mobile Drawer (Klik di luar menu untuk menutup di layar HP) */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden transition-opacity duration-300"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* 2. Mobile Drawer Navigation (Slide-over khusus layar HP) */}
       <aside
-        className={`${
-          isCollapsed ? 'w-20 p-3' : 'w-64 p-5'
-        } bg-[#0A0D1B] border-r border-slate-800/80 flex flex-col justify-between shrink-0 select-none transition-all duration-300 relative group/sidebar`}
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-[#0A0D1B] border-r border-slate-800 p-5 flex flex-col justify-between transition-transform duration-300 ease-in-out md:hidden shadow-2xl ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
         <div className="space-y-6">
-          {/* Electra Tech Brand Header & Toggle Button */}
+          {/* Mobile Drawer Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
+            <Link
+              href="/"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center gap-3"
+            >
+              <div className="w-9 h-9 rounded-xl p-0.5 shrink-0 flex items-center justify-center">
+                <img src="/logoelectra.png" alt="Electra Logo" className="w-6 h-6 object-contain" />
+              </div>
+              <div>
+                <h1 className="font-semibold text-sm tracking-tight text-white leading-tight">Electra Tech</h1>
+                <p className="text-[10px] text-slate-400 font-medium">{menu.nodeLabel}</p>
+              </div>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 transition-colors"
+              aria-label="Tutup Menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* User Preview di Mobile Drawer */}
+          <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-indigo-600 p-0.5 shrink-0">
+              <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center">
+                <span className="text-xs font-bold text-white">{getInitial(user?.name)}</span>
+              </div>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-bold text-white truncate">{user?.name || 'Pengguna'}</p>
+              <span className="inline-block text-[9px] font-bold uppercase text-emerald-400 tracking-wide">
+                {user?.role || currentRole}
+              </span>
+            </div>
+          </div>
+
+          {/* Menu Items Mobile */}
+          <nav className="space-y-1.5 overflow-y-auto max-h-[calc(100vh-280px)] pr-1">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">Navigasi Utama</p>
+            {menu.items.map((item) => {
+              const Icon = item.icon;
+              const isActive = isActivePath(pathname, item.href);
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm transition-all ${
+                    isActive
+                      ? 'bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/30'
+                      : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Footer Logout Mobile */}
+        <div className="pt-4 border-t border-slate-800/80">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors text-left"
+          >
+            <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
+            Keluar Akun
+          </button>
+        </div>
+      </aside>
+
+      {/* 3. Desktop Sidebar Navigation (Hanya muncul di md: ke atas) */}
+      <aside
+        className={`hidden md:flex ${
+          isCollapsed ? 'w-20 p-3' : 'w-64 p-5'
+        } bg-[#0A0D1B] border-r border-slate-800/80 flex-col justify-between shrink-0 select-none transition-all duration-300 relative group/sidebar`}
+      >
+        <div className="space-y-6">
+          {/* Electra Tech Brand Header */}
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3 px-1 py-1 group overflow-hidden">
               <div className="w-10 h-10 rounded-xl p-0.5 group-hover:scale-105 transition-transform shrink-0">
@@ -213,7 +326,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     isCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'
                   } rounded-xl text-sm font-normal transition-all ${
                     isActive
-                      ? 'bg-indigo-600 text-white font-medium'
+                      ? 'bg-indigo-600 text-white font-medium shadow-sm shadow-indigo-600/30'
                       : 'text-slate-400 hover:bg-slate-900/80 hover:text-slate-200'
                   }`}
                 >
@@ -227,46 +340,68 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Footer Navigation Items */}
         <div className="space-y-1.5 pt-4 border-t border-slate-800/80">
-          {/* <button
+          <button
             type="button"
-            title={isCollapsed ? 'Greenhouse A3' : undefined}
+            onClick={handleLogout}
+            title={isCollapsed ? 'Logout' : undefined}
             className={`w-full flex items-center gap-3.5 ${
-              isCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-3'
-            } rounded-xl text-sm font-semibold text-slate-400 hover:bg-slate-900/80 hover:text-slate-200 transition-all text-left`}
+              isCollapsed ? 'justify-center px-0 py-3' : 'px-4 py-2.5'
+            } rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-all text-left`}
           >
-          </button> */}
+            <LogOut className="w-4 h-4 text-rose-400 shrink-0" />
+            {!isCollapsed && <span>Logout</span>}
+          </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070913]">
-        {/* Top Header Bar */}
-        <header className="h-16 px-6 flex items-center justify-between gap-4 bg-[#070913]/80 border-b border-slate-800/40 shrink-0">
-          {/* Toggle Sidebar Icon in Header */}
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 rounded-xl transition"
-            title={isCollapsed ? 'Buka Sidebar' : 'Tutup Sidebar'}
-          >
-            {isCollapsed ? (
-              <ListIndentIncrease className="w-5 h-5" />
-            ) : (
-              <ListIndentDecrease className="w-5 h-5" />
-            )}
-          </button>
+      {/* 4. Main Content Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070913] relative">
+        {/* Top Header Bar (Responsive) */}
+        <header className="h-14 md:h-16 px-3.5 md:px-6 flex items-center justify-between gap-3 bg-[#070913]/90 backdrop-blur-md border-b border-slate-800/60 shrink-0 z-30">
+          <div className="flex items-center gap-2">
+            {/* Mobile Hamburger Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 text-slate-300 hover:text-white hover:bg-slate-900/80 rounded-xl transition md:hidden"
+              aria-label="Buka Menu Navigasi"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
-          <div className="flex items-center gap-4">
+            {/* Desktop Toggle Sidebar Icon */}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="hidden md:flex p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 rounded-xl transition"
+              title={isCollapsed ? 'Buka Sidebar' : 'Tutup Sidebar'}
+            >
+              {isCollapsed ? (
+                <ListIndentIncrease className="w-5 h-5" />
+              ) : (
+                <ListIndentDecrease className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* Logo Singkat Khusus Mobile */}
+            <Link href="/" className="flex items-center gap-2 md:hidden">
+              <img src="/logoelectra.png" alt="Electra" className="w-6 h-6 object-contain" />
+              <span className="font-bold text-sm tracking-tight text-white">ElectraTech</span>
+            </Link>
+          </div>
+
+          {/* Right Header Icons */}
+          <div className="flex items-center gap-2 md:gap-4">
             <button
               type="button"
               className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 rounded-xl transition"
               title="Notifikasi"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4.5 h-4.5 md:w-5 md:h-5" />
             </button>
             <button
               type="button"
-              className="p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 rounded-xl transition"
+              className="hidden sm:flex p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 rounded-xl transition"
               title="Pengaturan"
             >
               <Settings className="w-5 h-5" />
@@ -277,7 +412,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((prev) => !prev)}
-                className="w-9 h-9 rounded-full bg-gradient-to-r from-emerald-500 to-indigo-600 p-0.5 shadow-md shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-r from-emerald-500 to-indigo-600 p-0.5 shadow-md shrink-0 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                 title="Profil Pengguna"
               >
                 <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center overflow-hidden">
@@ -310,8 +445,70 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+        {/* Page Content with safe-padding for Bottom Navigation on Mobile */}
+        <main className="flex-1 overflow-y-auto p-3.5 sm:p-5 md:p-8 pb-24 md:pb-8 overscroll-contain">
+          {children}
+        </main>
+
+        {/* 5. Mobile App Bottom Navigation Bar (Khusus Layar HP / Mobile Web-App) */}
+        {currentRole === 'produsen' ? (
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0A0D1B]/95 backdrop-blur-xl border-t border-slate-800/90 px-2 py-1.5 flex items-center justify-around shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.6)]">
+            {produsenMobileBottomTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = isActivePath(pathname, tab.href);
+
+              return (
+                <Link
+                  key={tab.name}
+                  href={tab.href}
+                  className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all relative ${
+                    isActive ? 'text-indigo-400 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <div
+                    className={`p-1.5 rounded-xl transition-all ${
+                      isActive ? 'bg-indigo-600/15 text-indigo-400' : 'text-slate-400'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-[10px] tracking-tight mt-0.5 leading-none">{tab.name}</span>
+                </Link>
+              );
+            })}
+
+            {/* Tombol More / Menu Tambahan di Mobile */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center py-1 px-2 rounded-xl text-slate-400 hover:text-slate-200 transition-all"
+            >
+              <div className="p-1.5 rounded-xl text-slate-400">
+                <Layers className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] tracking-tight mt-0.5 leading-none">Menu</span>
+            </button>
+          </nav>
+        ) : (
+          /* Fallback bottom bar for admin & kurir on mobile */
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0A0D1B]/95 backdrop-blur-xl border-t border-slate-800/90 px-3 py-2 flex items-center justify-between shadow-2xl">
+            <Link
+              href={roleHome[pathRole[currentRole]]}
+              className="flex items-center gap-2 text-xs font-semibold text-indigo-400"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span>Dashboard</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-300"
+            >
+              <Menu className="w-4 h-4" />
+              <span>Semua Menu</span>
+            </button>
+          </nav>
+        )}
       </div>
     </div>
   );

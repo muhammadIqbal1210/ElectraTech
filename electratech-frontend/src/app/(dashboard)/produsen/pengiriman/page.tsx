@@ -221,29 +221,29 @@ export default function PengirimanPage() {
   };
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="space-y-4 md:space-y-6 text-slate-100">
       {/* 1. Header Halaman */}
-      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
             Pengiriman Paket Produsen
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Manifest penyerahan bibit ke armada kurir dan penempelan QR resi fisik.
           </p>
         </div>
       </div>
 
       {/* 2. Kartu Metrik Ringkasan Pengiriman */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Card 1: Total Paket */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 flex items-center justify-between shadow-lg">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">TOTAL MANIFEST PAKET</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{metrics.totalPackages}</p>
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider">TOTAL MANIFEST PAKET</p>
+            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{metrics.totalPackages}</p>
             <p className="text-xs text-slate-400 mt-1">Paket Pengiriman Terdaftar</p>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-purple-400 shrink-0">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-purple-400 shrink-0">
             <PackagePlus className="w-5 h-5" />
           </div>
         </div>

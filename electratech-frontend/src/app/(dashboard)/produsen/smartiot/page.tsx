@@ -377,13 +377,13 @@ export default function SmartIoTPage() {
   }, [logs, isMounted]);
 
   return (
-    <div className="space-y-6 text-slate-100">
+    <div className="space-y-4 md:space-y-6 text-slate-100">
       {/* Header Halaman */}
-      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg">
-        <h1 className="text-2xl md:text-3xl font-semibold text-white tracking-tight">
+      <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
           SmartIoT Control & Monitor
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">
           Pantau parameter sensor alat penakar dan kendalikan aktuator secara langsung.
         </p>
       </div>
@@ -394,41 +394,41 @@ export default function SmartIoTPage() {
         </div>
       )}
 
-      {/* Ringkasan Informasi Utama (3 COLUMNS METRIC CARDS) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Ringkasan Informasi Utama (Responsive Metric Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Card 1: Perangkat Terkoneksi */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex items-center gap-3.5 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-cyan-400 shrink-0">
             <Wifi className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Perangkat Terkoneksi</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{deviceCount} Unit</p>
-            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5">Total unit IoT aktif terdaftar</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Perangkat Terkoneksi</p>
+            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{deviceCount} Unit</p>
+            <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">Total unit IoT aktif</p>
           </div>
         </div>
 
         {/* Card 2: Parameter Sensor */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex items-center gap-3.5 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-indigo-400 shrink-0">
             <Database className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Parameter Sensor</p>
-            <p className="text-2xl font-bold text-white mt-0.5">{sensorCount} Sensor</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Indikator penakar sedang dipantau</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Parameter Sensor</p>
+            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{sensorCount} Sensor</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 truncate">Indikator dipantau</p>
           </div>
         </div>
 
         {/* Card 3: Pembaruan Terakhir */}
-        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 shadow-sm hover:border-slate-700/80 transition-all">
-          <div className="w-11 h-11 rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
+        <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-5 flex items-center gap-3.5 sm:gap-4 shadow-sm hover:border-slate-700/80 transition-all">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-400 shrink-0">
             <Cpu className="w-5 h-5" />
           </div>
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Pembaruan Terakhir</p>
-            <p className="text-sm font-semibold text-slate-200 mt-1">{lastSynced}</p>
-            <p className="text-[10px] text-slate-500 mt-0.5">Sinkronisasi log telemetri terbaru</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Pembaruan Terakhir</p>
+            <p className="text-xs sm:text-sm font-semibold text-slate-200 mt-1 truncate">{lastSynced}</p>
+            <p className="text-[10px] text-slate-500 mt-0.5 truncate">Sinkronisasi telemetri</p>
           </div>
         </div>
       </div>
@@ -723,13 +723,13 @@ export default function SmartIoTPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[700px] text-left text-xs">
             <thead>
               <tr className="border-b border-[#243044] text-[#94A3B8] text-[11px] font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-4">WAKTU CATAT</th>
-                <th className="py-3.5 px-4">KODE ALAT</th>
-                <th className="py-3.5 px-4">PARAMETER & NILAI</th>
-                <th className="py-3.5 px-4 text-center">AMBANG BATAS</th>
+                <th className="py-3.5 px-5 w-[28%] whitespace-nowrap">WAKTU CATAT</th>
+                <th className="py-3.5 px-5 w-[24%] whitespace-nowrap">KODE ALAT</th>
+                <th className="py-3.5 px-5 w-[32%] whitespace-nowrap">PARAMETER & NILAI</th>
+                <th className="py-3.5 px-5 w-[16%] text-center whitespace-nowrap">AMBANG BATAS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#243044]/60 text-slate-300">
@@ -749,21 +749,36 @@ export default function SmartIoTPage() {
                     ? log.recorded_at.replace(' ', 'T')
                     : log.recorded_at;
                   const dateObj = new Date(safeLogDate);
-                  const formattedDate = `${dateObj.getDate()}/${dateObj.getMonth() + 1}/${dateObj.getFullYear()}`;
-                  const formattedTime = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                  const formattedDate = isNaN(dateObj.getTime())
+                    ? log.recorded_at
+                    : dateObj.toLocaleDateString('id-ID', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      });
+                  const formattedTime = isNaN(dateObj.getTime())
+                    ? ''
+                    : dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
 
                   return (
                     <tr key={log.id} className="hover:bg-[#1A2436]/50 transition-colors">
-                      <td className="py-4 px-4 font-mono text-slate-400">
-                        {formattedDate} - {formattedTime} WIB
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        <span className="font-medium text-slate-200">{formattedDate}</span>
+                        <span className="text-slate-400 font-mono text-[11px] ml-2">({formattedTime})</span>
                       </td>
-                      <td className="py-4 px-4 font-bold text-white">
-                        {log.deviceCode} <span className="text-slate-400 font-normal">({log.boxName || 'Bed A'})</span>
+                      <td className="py-4 px-5 whitespace-nowrap">
+                        <span className="font-bold text-white">{log.deviceCode}</span>
+                        <span className="text-slate-400 text-xs ml-1.5 font-normal">({log.boxName || 'Bed A'})</span>
                       </td>
-                      <td className="py-4 px-4 text-slate-300">
-                        {log.componentName || 'Sensor'}: <span className="font-bold text-[#10B981] font-mono">{log.value}</span>
+                      <td className="py-4 px-5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-300 font-medium">{log.componentName || 'Sensor'}:</span>
+                          <span className="font-bold text-[#10B981] font-mono text-sm tracking-wide bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-md">
+                            {log.value}
+                          </span>
+                        </div>
                       </td>
-                      <td className="py-4 px-4 text-center">
+                      <td className="py-4 px-5 text-center whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 rounded-md text-xs font-semibold bg-[#10B981]/10 border border-[#10B981]/30 text-[#10B981]">
                           Optimal
                         </span>

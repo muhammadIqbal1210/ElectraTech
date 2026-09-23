@@ -126,29 +126,29 @@ export default function AiAgentPenakarPage() {
   };
 
   return (
-    <div className="grid h-[calc(100vh-8rem)] grid-cols-1 gap-6 lg:grid-cols-1">
-      <div className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 shadow-xl lg:col-span-2">
+    <div className="h-[calc(100vh-9.5rem)] md:h-[calc(100vh-8rem)] flex flex-col">
+      <div className="flex flex-col flex-1 justify-between overflow-hidden rounded-2xl border border-slate-800 bg-[#0D1123]/95 shadow-xl">
         {/* Header Agent */}
-        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/40 p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-purple-600/10 p-2 text-purple-400">
+        <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/40 p-3 sm:p-4">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="rounded-xl bg-purple-600/10 p-2 text-purple-400 shrink-0">
               <Bot className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-slate-200">ElectraAgent Penakar</h2>
-              <p className="flex items-center gap-1 text-[10px] text-emerald-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                Online - Terintegrasi IoT & Ledger Hulu
+              <h2 className="text-xs sm:text-sm font-bold text-slate-200">ElectraAgent Penakar</h2>
+              <p className="flex items-center gap-1 text-[9px] sm:text-[10px] text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Online - Real-time Core
               </p>
             </div>
           </div>
-          <span className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[10px] text-slate-400">
+          <span className="rounded-md border border-slate-800 bg-slate-950 px-2 py-0.5 sm:py-1 font-mono text-[9px] sm:text-[10px] text-slate-400">
             Akses: Penakar
           </span>
         </div>
 
         {/* Chat History List */}
-        <div className="flex-1 space-y-4 overflow-y-auto bg-slate-950/20 p-6">
+        <div className="flex-1 space-y-3 sm:space-y-4 overflow-y-auto bg-slate-950/20 p-3 sm:p-6">
           {messages.map((msg, index) => (
             <div
               key={index}
