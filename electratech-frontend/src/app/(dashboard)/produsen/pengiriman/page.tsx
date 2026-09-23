@@ -225,7 +225,7 @@ export default function PengirimanPage() {
       {/* 1. Header Halaman */}
       <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-white tracking-tight">
             Pengiriman Paket Produsen
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
@@ -463,7 +463,7 @@ export default function PengirimanPage() {
                     </td>
                     <td className="py-4 px-3 text-center">
                       <span
-                        className={`inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-bold uppercase ${
+                        className={`inline-flex items-center rounded-md border px-2.5 py-1 text-[10px] font-medium uppercase ${
                           shipment.status === 'DELIVERED'
                             ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
                             : shipment.status === 'IN_TRANSIT' || shipment.status === 'ACCEPTED_BY_COURIER'
