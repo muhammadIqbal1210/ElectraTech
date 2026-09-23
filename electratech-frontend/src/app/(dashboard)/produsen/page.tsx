@@ -330,11 +330,7 @@ export default function DashboardPenakar() {
         <div className="absolute -right-8 -top-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
         <div className="flex items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Node Penakar Aktif
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-white tracking-tight">
               Selamat Datang, Penakar Benih
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
@@ -353,7 +349,7 @@ export default function DashboardPenakar() {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Perangkat</p>
-            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
+            <p className="text-lg sm:text-xl font-semibold text-white mt-0.5">
               {loading ? '...' : `${totalDevicesCount} Unit`}
             </p>
             <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">
@@ -369,7 +365,7 @@ export default function DashboardPenakar() {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Sensor Aktif</p>
-            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
+            <p className="text-lg sm:text-xl font-semibold text-white mt-0.5">
               {loading ? '...' : `${totalSensorsCount} Sensor`}
             </p>
             <p className="text-[10px] text-slate-400 mt-0.5 truncate">Modul Pantau</p>
@@ -383,7 +379,7 @@ export default function DashboardPenakar() {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Batch Benih</p>
-            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
+            <p className="text-lg sm:text-xl font-semibold text-white mt-0.5">
               {loading ? '...' : `${totalBatchesCount} Batch`}
             </p>
             <p className="text-[10px] text-slate-400 mt-0.5 truncate">Dalam Ledger</p>
@@ -397,7 +393,7 @@ export default function DashboardPenakar() {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider truncate">Pengiriman</p>
-            <p className="text-lg sm:text-xl font-bold text-white mt-0.5">
+            <p className="text-lg sm:text-xl font-semibold text-white mt-0.5">
               {loading ? '...' : `${shipmentBatchesCount} Batch`}
             </p>
             <p className="text-[10px] font-semibold text-emerald-400 mt-0.5 truncate">
@@ -414,7 +410,7 @@ export default function DashboardPenakar() {
           <div>
             <div className="mb-4 sm:mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">Aktivitas Terbaru</h2>
+                <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">Aktivitas Terbaru</h2>
                 <p className="text-xs text-slate-400 mt-0.5">
                   Catatan aktivitas batch, logistik, tracking, dan kontrol actuator.
                 </p>
@@ -446,7 +442,7 @@ export default function DashboardPenakar() {
                         {act.initial}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-bold text-xs sm:text-sm text-white truncate">{act.title}</h3>
+                        <h3 className="font-semibold text-xs sm:text-sm text-white truncate">{act.title}</h3>
                         <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5 truncate">{act.description}</p>
                       </div>
                     </div>
@@ -469,7 +465,7 @@ export default function DashboardPenakar() {
             <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-300" />
           </div>
 
-          <h3 className="text-base sm:text-lg font-extrabold text-white mb-2 tracking-tight">Rekomendasi AI Penakar</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-white mb-2 tracking-tight">Rekomendasi AI Penakar</h3>
           <p className="text-xs text-indigo-100/90 leading-relaxed max-w-xs mb-6 sm:mb-8">
             {latestMoistureLog
               ? `Kelembapan tanah saat ini terpantau (${latestMoistureLog.value}). ${

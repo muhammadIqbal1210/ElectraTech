@@ -380,7 +380,7 @@ export default function SmartIoTPage() {
     <div className="space-y-4 md:space-y-6 text-slate-100">
       {/* Header Halaman */}
       <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-white tracking-tight">
           SmartIoT Control & Monitor
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
@@ -463,7 +463,7 @@ export default function SmartIoTPage() {
               <ChartIcon className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-white uppercase tracking-wider">Grafik Riwayat Pengukuran Sensor</h3>
+              <h3 className="font-semibold text-sm text-white uppercase tracking-wider">Grafik Riwayat Pengukuran Sensor</h3>
               <p className="text-xs text-slate-400 mt-0.5">Analisis tren fluktuasi nilai indikator penakar.</p>
             </div>
           </div>
@@ -562,7 +562,7 @@ export default function SmartIoTPage() {
         {/* Sensor Metrics Column (2/3 width) */}
         <div className="xl:col-span-2 bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-6 shadow-lg space-y-4">
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">Status Indikator Penakar</h2>
+            <h2 className="text-base font-semibold text-white tracking-tight">Status Indikator Penakar</h2>
             <p className="text-xs text-slate-400 mt-0.5">Nilai metrik aktual yang sedang dibaca oleh modul sensor terpasang.</p>
           </div>
 
@@ -582,8 +582,8 @@ export default function SmartIoTPage() {
                   <div key={component.id} className="rounded-xl border border-slate-800/80 bg-[#0A0D1B] p-4 flex flex-col justify-between space-y-3 hover:border-slate-700/80 transition-all">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nama Indikator</p>
-                        <p className="text-sm font-bold text-white mt-0.5">{component.componentName}</p>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Nama Indikator</p>
+                        <p className="text-sm font-semibold text-white mt-0.5">{component.componentName}</p>
                       </div>
                       <span className="text-[11px] bg-[#151B33] border border-slate-700/70 px-2.5 py-0.5 rounded-md font-medium text-cyan-300">
                         {component.unit || component.dataType}
@@ -697,7 +697,7 @@ export default function SmartIoTPage() {
       <div className="bg-[#131B29] border border-[#243044] rounded-2xl p-6 shadow-lg space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#243044] pb-4">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Riwayat Log Telemetri</h2>
+            <h2 className="text-lg font-semibold text-white tracking-tight">Riwayat Log Telemetri</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Catatan pembacaan parameter berkala dari node sensor {selectedDevice ? selectedDevice.boxName || selectedDevice.deviceCode : 'Greenhouse A3'}.
             </p>
