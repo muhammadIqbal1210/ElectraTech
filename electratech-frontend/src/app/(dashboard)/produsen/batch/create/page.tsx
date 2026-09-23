@@ -240,7 +240,7 @@ export default function PendaftaranBatchPage() {
       {/* 1. HEADER TITLE & ACTION BUTTON */}
       <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-white tracking-tight">
             Pendaftaran Batch Benih
           </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
@@ -250,7 +250,7 @@ export default function PendaftaranBatchPage() {
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-3 sm:py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs shrink-0 shadow-lg shadow-emerald-500/20 active:scale-95 cursor-pointer"
+          className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-medium px-5 py-3 sm:py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-xs shrink-0 shadow-lg active:scale-95 cursor-pointer text-white"
         >
           <FolderPlus className="w-4 h-4" />Registrasi Batch Baru
         </button>
@@ -272,7 +272,7 @@ export default function PendaftaranBatchPage() {
         <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-[10px] sm:text-[11px] font-medium text-slate-400 uppercase tracking-wider">TOTAL AKUMULASI BATCH</p>
-            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{totalAccumulatedBatches}</p>
+            <p className="text-xl sm:text-2xl font-semibold text-white mt-0.5">{totalAccumulatedBatches}</p>
             <p className="text-xs text-slate-400 mt-1">Batch Terdaftar</p>
           </div>
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-slate-300 shrink-0">
@@ -284,7 +284,7 @@ export default function PendaftaranBatchPage() {
         <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
             <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">JUMLAH BIBIT</p>
-            <p className="text-xl sm:text-2xl font-bold text-white mt-0.5">{totalSeeds.toLocaleString('id-ID')}</p>
+            <p className="text-xl sm:text-2xl font-semibold text-white mt-0.5">{totalSeeds.toLocaleString('id-ID')}</p>
             <p className="text-xs text-slate-400 mt-1">Bibit Terdaftar</p>
           </div>
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-full bg-[#151B33] border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0">
@@ -295,7 +295,7 @@ export default function PendaftaranBatchPage() {
         {/* Card 3: Update Terakhir */}
         <div className="bg-[#0D1123]/90 border border-slate-800/80 rounded-2xl p-4 sm:p-6 flex items-center justify-between shadow-lg">
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">UPDATE TERAKHIR</p>
+            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">UPDATE TERAKHIR</p>
             <p className="text-xs sm:text-sm font-semibold text-white mt-1 truncate">{latestUpdateDate}</p>
             <p className="text-xs text-slate-400 mt-1">Sinkronisasi history batch</p>
           </div>
@@ -310,7 +310,7 @@ export default function PendaftaranBatchPage() {
         {/* Header & Search */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800/80 pb-5">
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Riwayat Lengkap Batch & Audit Log</h2>
+            <h2 className="text-lg font-semibold text-white tracking-tight">Riwayat Lengkap Batch & Audit Log</h2>
             <p className="text-xs text-slate-400 mt-0.5">Arsip terpusat data germinasi bibit dan verifikasi hash ledger terdistribusi.</p>
           </div>
 
@@ -395,7 +395,7 @@ export default function PendaftaranBatchPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+              <tr className="border-b border-slate-800 text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
                 <th className="py-3 px-3">ID BATCH</th>
                 <th className="py-3 px-3">VARIETAS & GENERASI</th>
                 <th className="py-3 px-3">JUMLAH BIBIT</th>
@@ -494,7 +494,7 @@ export default function PendaftaranBatchPage() {
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <FolderPlus className="w-4 h-4" />
                 </div>
-                <h3 className="font-bold text-sm sm:text-base text-white">Registrasi Batch Benih Baru</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-white">Registrasi Batch Benih Baru</h3>
               </div>
               <button
                 type="button"
