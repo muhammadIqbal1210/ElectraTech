@@ -40,12 +40,12 @@ const members = [
   {
     name: "Dr. Kiki Yulianto ",
     role: "Komisaris Utama",
-    image: "/team_kiki.png"
+    image: "/team_kiki.jpeg"
   },
   {
     name: "Muhammad Iqbal",
-    role: "Programmer",
-    image: "/iqbal.png"
+    role: "CTO",
+    image: "/team_iqbal.jpg"
   }
 ];
 function LandingBlogCards() {
@@ -169,7 +169,7 @@ export default function LandingPage() {
       <Navbar />
 
       {/* HERO */}
-      <section className="relative pt-32 pb-24 min-h-screen flex items-center overflow-hidden">
+      <section className="relative pt-32 pb-16 lg:pt-36 lg:pb-20 overflow-hidden">
         {/* Background Glow */}
         <div className="absolute top-20 left-20 w-[500px] h-[500px] bg-cyan-500/10 blur-[120px] rounded-full" />
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-blue-600/10 blur-[140px] rounded-full" />
