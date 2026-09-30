@@ -32,7 +32,7 @@ const members = [
   {
     name: "Ari Kurniawan S.T, M.T",
     role: "Direktur Utama",
-    image: "/team_ari.png"
+    image: "/team_ari.jpeg"
   },
   {
     name: "Dr. Kiki Yulianto ",
