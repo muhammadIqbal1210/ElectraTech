@@ -206,11 +206,10 @@ export default function TrackingBenihProdusenPage() {
                   key={shipment.receiptNumber}
                   type="button"
                   onClick={() => setSelectedReceipt(shipment.receiptNumber)}
-                  className={`w-full rounded-xl border p-4 text-left transition-all ${
-                    isSelected
+                  className={`w-full rounded-xl border p-4 text-left transition-all ${isSelected
                       ? 'border-cyan-500/40 bg-cyan-500/10'
                       : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>

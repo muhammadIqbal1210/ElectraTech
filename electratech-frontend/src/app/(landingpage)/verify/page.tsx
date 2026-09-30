@@ -19,7 +19,10 @@ import {
   ExternalLink,
   AlertTriangle,
   Database,
+  Camera,
+  QrCode,
 } from 'lucide-react';
+import QrScannerModal from '@/components/QrScannerModal';
 
 export default function VerifyPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -31,6 +34,7 @@ export default function VerifyPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   useEffect(() => {
     const slideTimer = setInterval(() => {
@@ -47,9 +51,8 @@ export default function VerifyPage() {
     }
   };
 
-  const handleVerify = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const query = searchQuery.trim();
+  const triggerVerify = async (queryInput: string) => {
+    const query = queryInput.trim();
     if (!query) {
       setSearchError('Silakan masukkan ID Batch atau Nomor Resi untuk melacak produk.');
       setVerifyResult(null);
@@ -74,6 +77,45 @@ export default function VerifyPage() {
     } finally {
       setIsSearching(false);
     }
+  };
+
+  const handleVerify = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await triggerVerify(searchQuery);
+  };
+
+  const handleScanSuccess = (decodedText: string) => {
+    let cleanText = decodedText.trim();
+    try {
+      if (cleanText.includes('http://') || cleanText.includes('https://')) {
+        const url = new URL(cleanText);
+        const idParam = url.searchParams.get('id');
+        if (idParam) {
+          cleanText = idParam;
+        } else {
+          const parts = url.pathname.split('/').filter(Boolean);
+          if (parts.length > 0) {
+            cleanText = parts[parts.length - 1];
+          }
+        }
+      } else if (cleanText.includes('\n')) {
+        const lines = cleanText.split('\n');
+        for (const line of lines) {
+          if (line.toLowerCase().includes('batch:') || line.toLowerCase().includes('batch id:')) {
+            cleanText = line.split(':')[1].trim();
+            break;
+          } else if (line.toLowerCase().includes('resi:') || line.toLowerCase().includes('nomor resi:')) {
+            cleanText = line.split(':')[1].trim();
+            break;
+          }
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    setSearchQuery(cleanText);
+    void triggerVerify(cleanText);
   };
 
   return (
@@ -156,17 +198,27 @@ export default function VerifyPage() {
           <div>
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl">
               <form onSubmit={handleVerify} className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Masukkan ID Batch atau Nomor Resi"
-                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-500 focus:border-cyan-400 outline-none transition text-sm"
-                />
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Masukkan ID Batch atau Nomor Resi..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-11 py-3.5 text-white placeholder:text-slate-500 focus:border-cyan-400 outline-none transition text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsScannerOpen(true)}
+                    title="Pindai QR Code / Barcode Produk"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition"
+                  >
+                    <Camera className="w-5 h-5" />
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-950 font-semibold px-6 py-3.5 rounded-xl transition shrink-0 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                  className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 font-medium px-6 py-3.5 rounded-xl transition shrink-0 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
                 >
                   <span>{isSearching ? 'Memeriksa...' : 'Lacak Produk'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -538,6 +590,13 @@ export default function VerifyPage() {
       </main>
 
       <Footer />
+
+      {/* QR Scanner Modal */}
+      <QrScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onScanSuccess={handleScanSuccess}
+      />
     </div>
   );
 }
