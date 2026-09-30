@@ -4,7 +4,6 @@ import { useState } from 'react';
 import {
   QrCode,
   Download,
-  ExternalLink,
   X,
   Package,
   CheckCircle2,
@@ -142,25 +141,16 @@ export default function ShipmentQrModal({ open, shipment, onClose }: ShipmentQrM
                 />
               </div>
 
-              <div className="mt-3 flex w-full gap-2">
+              <div className="mt-3 flex w-full">
                 <button
                   type="button"
                   onClick={handleDownloadQr}
                   disabled={isDownloading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 py-2.5 px-3 text-xs font-semibold text-white transition shadow-lg shadow-purple-600/20 disabled:bg-slate-800"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 py-2.5 px-3 text-xs font-semibold text-white transition shadow-lg shadow-purple-600/20 disabled:bg-slate-800"
                 >
                   <Download className="w-3.5 h-3.5" />
                   {isDownloading ? 'Mengunduh...' : 'Unduh QR'}
                 </button>
-                <a
-                  href={qrImageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 p-2.5 text-slate-300 transition"
-                  title="Buka Gambar Langsung"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </a>
               </div>
             </div>
 
