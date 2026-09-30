@@ -84,33 +84,41 @@ export default function VerifyPage() {
   };
 
   const handleScanSuccess = (decodedText: string) => {
-    let cleanText = decodedText.trim();
+    const raw = decodedText.trim();
+    let cleanText = raw;
+
     try {
-      if (cleanText.includes('http://') || cleanText.includes('https://')) {
-        const url = new URL(cleanText);
-        const idParam = url.searchParams.get('id');
-        if (idParam) {
-          cleanText = idParam;
-        } else {
-          const parts = url.pathname.split('/').filter(Boolean);
-          if (parts.length > 0) {
-            cleanText = parts[parts.length - 1];
+      // 1. Cek jika mengandung pola Nomor Resi resmi (contoh: ELC-20260927-5DAB6)
+      const resiMatch = raw.match(/ELC-[A-Za-z0-9-]+/i);
+      if (resiMatch) {
+        cleanText = resiMatch[0];
+      } else {
+        // 2. Cek jika mengandung pola Batch ID resmi (contoh: BATCH-4B532D)
+        const batchMatch = raw.match(/BATCH-[A-Za-z0-9-]+/i);
+        if (batchMatch) {
+          cleanText = batchMatch[0];
+        } else if (raw.includes('id=')) {
+          // 3. Cek parameter URL id=...
+          const idMatch = raw.match(/[?&]id=([^&#\s]+)/i);
+          if (idMatch && idMatch[1]) {
+            cleanText = decodeURIComponent(idMatch[1]);
           }
-        }
-      } else if (cleanText.includes('\n')) {
-        const lines = cleanText.split('\n');
-        for (const line of lines) {
-          if (line.toLowerCase().includes('batch:') || line.toLowerCase().includes('batch id:')) {
-            cleanText = line.split(':')[1].trim();
-            break;
-          } else if (line.toLowerCase().includes('resi:') || line.toLowerCase().includes('nomor resi:')) {
-            cleanText = line.split(':')[1].trim();
-            break;
+        } else if (raw.toLowerCase().includes('nomor resi:') || raw.toLowerCase().includes('resi:')) {
+          // 4. Cek label Nomor Resi: ...
+          const labelMatch = raw.match(/(?:nomor\s+resi|resi)\s*:\s*([^\r\n,]+)/i);
+          if (labelMatch && labelMatch[1]) {
+            cleanText = labelMatch[1].trim();
+          }
+        } else if (raw.toLowerCase().includes('batch id:') || raw.toLowerCase().includes('batch:')) {
+          // 5. Cek label Batch ID: ...
+          const labelMatch = raw.match(/(?:batch\s+id|batch)\s*:\s*([^\r\n,]+)/i);
+          if (labelMatch && labelMatch[1]) {
+            cleanText = labelMatch[1].trim();
           }
         }
       }
     } catch {
-      // fallback
+      // fallback menggunakan string asli
     }
 
     setSearchQuery(cleanText);
@@ -202,14 +210,14 @@ export default function VerifyPage() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Masukkan ID Batch atau Nomor Resi..."
+                    placeholder="Ketik ID Batch atau Nomor Resi..."
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-11 py-3.5 text-white placeholder:text-slate-500 focus:border-cyan-400 outline-none transition text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setIsScannerOpen(true)}
                     title="Pindai QR Code / Barcode Produk"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition"
                   >
                     <Camera className="w-5 h-5" />
                   </button>
@@ -217,7 +225,7 @@ export default function VerifyPage() {
                 <button
                   type="submit"
                   disabled={isSearching}
-                  className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 font-medium px-6 py-3.5 rounded-xl transition shrink-0 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
+                  className="bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 font-semibold px-6 py-3.5 rounded-xl transition shrink-0 flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20"
                 >
                   <span>{isSearching ? 'Memeriksa...' : 'Lacak Produk'}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -234,9 +242,17 @@ export default function VerifyPage() {
                   <h4 className="text-base font-semibold text-slate-200 mb-1.5">
                     Belum Ada Produk Ditampilkan
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-4">
-                    Silakan ketik Kode ID Batch (contoh: <span className="text-cyan-300 font-mono font-medium">BATCH-B092</span>) atau Nomor Resi pada kolom pencarian di atas untuk memverifikasi keaslian produk.
+                  <p className="text-xs text-slate-400 max-w-sm leading-relaxed mb-5">
+                    Gunakan tombol <span className="text-cyan-300 font-semibold">Scan QR</span> untuk memindai kemasan produk dengan kamera/unggah foto, atau ketik ID Batch/Resi secara manual.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsScannerOpen(true)}
+                    className="mb-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500/15 border border-cyan-500/40 text-cyan-300 text-xs font-semibold hover:bg-cyan-500/25 transition shadow-lg shadow-cyan-500/10"
+                  >
+                    <Camera className="w-4 h-4" />
+                    <span>Buka Scanner Kamera / Upload QR</span>
+                  </button>
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
                     <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
                     Data Terverifikasi dan Terdistribusi di Jaringan Blockchain
