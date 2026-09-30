@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Bot, Send, Sparkles, AlertTriangle, ShieldCheck, HelpCircle, Loader2 } from 'lucide-react';
+import { Bot, Send, Loader2 } from 'lucide-react';
 import { getToken, API_URL } from '@/lib/api';
 
 export default function AiAgentPenakarPage() {

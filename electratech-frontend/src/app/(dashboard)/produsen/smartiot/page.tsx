@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { ToggleLeft, ToggleRight, Activity, Cpu, Wifi, Database, LineChart as ChartIcon, Layers, Download, Filter } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Cpu, Wifi, Database, LineChart as ChartIcon, Layers, Download, Filter } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
@@ -38,12 +38,6 @@ type IotLog = {
 // Helper internal untuk normalisasi data yang toleran terhadap format casing backend
 const getComponentType = (log: any) => (log.componentType || log.componenttype || '').trim().toLowerCase();
 const getMqttTopic = (log: any) => log.mqttTopic || log.mqtttopic || '';
-
-const getTopicSuffix = (topic: string) => {
-  if (!topic) return '';
-  const parts = topic.split('/');
-  return parts[parts.length - 1];
-};
 
 export default function SmartIoTPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<number | null>(null);
@@ -92,10 +86,10 @@ export default function SmartIoTPage() {
     const savedMode = localStorage.getItem('actuatorMode');
     const savedConfig = localStorage.getItem('autoConfig');
     if (savedMode) {
-      try { setActuatorMode(JSON.parse(savedMode)); } catch (e) { }
+      try { setActuatorMode(JSON.parse(savedMode)); } catch { }
     }
     if (savedConfig) {
-      try { setAutoConfig(JSON.parse(savedConfig)); } catch (e) { }
+      try { setAutoConfig(JSON.parse(savedConfig)); } catch { }
     }
   }, []);
 
@@ -144,7 +138,6 @@ export default function SmartIoTPage() {
             .slice()
             .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
             .forEach((log) => {
-              const compId = log.id; // Assuming log.id corresponds to component ID? If not, use a proper identifier.
               // Use mqttTopic to match component
               latestLogMap[log.mqttTopic] = log;
             });

@@ -155,11 +155,10 @@ export default function PublicAiAgent() {
       {/* Jendela Chat Popup */}
       {isOpen && (
         <div
-          className={`flex flex-col rounded-2xl border border-slate-700/80 bg-[#0B132B] shadow-2xl overflow-hidden transition-all duration-300 mb-4 ${
-            isMinimized
+          className={`flex flex-col rounded-2xl border border-slate-700/80 bg-[#0B132B] shadow-2xl overflow-hidden transition-all duration-300 mb-4 ${isMinimized
               ? 'h-16 w-80'
               : 'h-[540px] max-h-[82vh] w-[92vw] sm:w-[380px]'
-          }`}
+            }`}
         >
           {/* Header Chat*/}
           <div className="flex items-center justify-between bg-[#0F275E] px-4 py-3 select-none">
@@ -200,9 +199,8 @@ export default function PublicAiAgent() {
                   return (
                     <div
                       key={index}
-                      className={`flex gap-2.5 ${
-                        isAgent ? 'items-start' : 'justify-end'
-                      }`}
+                      className={`flex gap-2.5 ${isAgent ? 'items-start' : 'justify-end'
+                        }`}
                     >
                       {/* Avatar Bot di samping kiri bubble pesan bot */}
                       {isAgent && (
@@ -213,11 +211,10 @@ export default function PublicAiAgent() {
 
                       <div className={`flex flex-col ${isAgent ? 'items-start' : 'items-end'} max-w-[82%]`}>
                         <div
-                          className={`p-3.5 text-xs leading-relaxed shadow-sm ${
-                            isAgent
+                          className={`p-3.5 text-xs leading-relaxed shadow-sm ${isAgent
                               ? 'rounded-2xl rounded-tl-sm bg-[#0B132B] text-slate-400 border border-slate-200'
                               : 'rounded-2xl rounded-tr-sm bg-indigo-600 text-white whitespace-pre-line'
-                          }`}
+                            }`}
                         >
                           {isAgent ? (
                             <div className="prose prose-sm max-w-none text-slate-200 text-xs leading-relaxed [&>p]:mb-1.5 [&>p:last-child]:mb-0 [&>ul]:list-disc [&>ul]:pl-4 [&>ol]:list-decimal [&>ol]:pl-4 [&>li]:mb-1 [&>strong]:text-blue-900 font-normal">

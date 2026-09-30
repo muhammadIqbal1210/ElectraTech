@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState, ChangeEvent } from 'react';
-import { FileText, Newspaper, Pencil, Plus, Sparkles, Trash2, ExternalLink, X, Upload } from 'lucide-react';
+import { Pencil, Plus, Trash2, ExternalLink, X, Upload } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { apiRequest } from '@/lib/api';
@@ -100,7 +100,7 @@ export default function AdminBlogPage() {
       } else {
         alert(json.message || 'Gagal mengunggah gambar.');
       }
-    } catch (err: any) {
+    } catch {
       alert('Gagal mengunggah file gambar.');
     } finally {
       setIsUploadingImage(false);

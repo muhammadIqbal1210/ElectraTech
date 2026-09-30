@@ -5,10 +5,8 @@ import {
   PackagePlus,
   QrCode,
   Truck,
-  PackageCheck,
   Clock,
   Search,
-  CheckCircle2,
 } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import FeedbackModal from '@/utils/FeedbackModal';
@@ -179,7 +177,6 @@ export default function PengirimanPage() {
       });
 
       const matchedBatch = batches.find((b) => b.id === shipmentBatchId);
-      const newReceiptNumber = response.data?.receipt_number;
 
       // Reset form
       setDestination('');

@@ -25,9 +25,6 @@ import {
   ExternalLink,
   Layers,
   Sparkles,
-  Activity,
-  FileText,
-  Bot,
   QrCode,
 } from 'lucide-react';
 

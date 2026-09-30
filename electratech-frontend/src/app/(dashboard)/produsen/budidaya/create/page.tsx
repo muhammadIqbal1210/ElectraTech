@@ -1,6 +1,6 @@
 'use client';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { BookOpen, History, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { apiRequest } from '@/lib/api';
 import FeedbackModal from '@/utils/FeedbackModal';
 import Pagination from '@/utils/Pagination';

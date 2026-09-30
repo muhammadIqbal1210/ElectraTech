@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { Camera, X, RefreshCw, AlertCircle, ShieldAlert, Check } from 'lucide-react';
 
@@ -19,20 +19,7 @@ export default function QrScannerModal({ isOpen, onClose, onScanSuccess }: QrSca
   const isMountedRef = useRef(false);
   const containerId = 'qr-reader-viewport';
 
-  // Reset state ketika modal dibuka atau ditutup
-  useEffect(() => {
-    if (isOpen) {
-      isMountedRef.current = true;
-      setPermissionState('idle');
-      setErrorMsg(null);
-      setIsStarting(false);
-    } else {
-      isMountedRef.current = false;
-      cleanupScanner();
-    }
-  }, [isOpen]);
-
-  const cleanupScanner = async () => {
+  const cleanupScanner = useCallback(async () => {
     const scanner = scannerRef.current;
     if (scanner) {
       scannerRef.current = null;
@@ -48,7 +35,20 @@ export default function QrScannerModal({ isOpen, onClose, onScanSuccess }: QrSca
         } catch { }
       }
     }
-  };
+  }, []);
+
+  // Reset state ketika modal dibuka atau ditutup
+  useEffect(() => {
+    if (isOpen) {
+      isMountedRef.current = true;
+      setPermissionState('idle');
+      setErrorMsg(null);
+      setIsStarting(false);
+    } else {
+      isMountedRef.current = false;
+      void cleanupScanner();
+    }
+  }, [isOpen, cleanupScanner]);
 
   const startScanner = async () => {
     setIsStarting(true);
@@ -198,7 +198,7 @@ export default function QrScannerModal({ isOpen, onClose, onScanSuccess }: QrSca
               <RefreshCw className="h-8 w-8 text-cyan-400 animate-spin" />
               <p className="text-sm font-medium text-slate-200">Menunggu Izin Browser...</p>
               <p className="text-xs text-slate-400 max-w-xs">
-                Silakan pilih <b>"Allow"</b> atau <b>"Izinkan"</b> pada prompt izin kamera di browser Anda.
+                Silakan pilih <b>&quot;Allow&quot;</b> atau <b>&quot;Izinkan&quot;</b> pada prompt izin kamera di browser Anda.
               </p>
             </div>
           )}

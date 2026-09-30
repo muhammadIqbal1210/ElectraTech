@@ -2,12 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Bell,
   Bot,
-  ChevronLeft,
-  ChevronRight,
   ClipboardList,
   Cpu,
   Database,
@@ -21,15 +20,12 @@ import {
   QrCode,
   ListIndentIncrease,
   ListIndentDecrease,
-  Route,
   Settings,
   ShieldCheck,
   Sprout,
-  User,
   Users,
   X,
   Layers,
-  ChevronUp,
 } from 'lucide-react';
 import { apiRequest, ApiUser, clearSession, getStoredUser, getToken, Role } from '@/lib/api';
 
@@ -216,7 +212,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex items-center gap-3"
             >
               <div className="w-9 h-9 rounded-xl p-0.5 shrink-0 flex items-center justify-center">
-                <img src="/logoelectra.png" alt="Electra Logo" className="w-6 h-6 object-contain" />
+                <Image src="/logoelectra.png" alt="Electra Logo" width={24} height={24} className="w-6 h-6 object-contain" />
               </div>
               <div>
                 <h1 className="font-semibold text-sm tracking-tight text-white leading-tight">Electra Tech</h1>
@@ -299,7 +295,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/" className="flex items-center gap-3 px-1 py-1 group overflow-hidden">
               <div className="w-10 h-10 rounded-xl p-0.5 group-hover:scale-105 transition-transform shrink-0">
                 <div className="w-full h-full rounded-[10px] flex items-center justify-center">
-                  <img src="/logoelectra.png" alt="Electra Logo" className="w-8 h-8 object-contain opacity-90" />
+                  <Image src="/logoelectra.png" alt="Electra Logo" width={32} height={32} className="w-8 h-8 object-contain opacity-90" />
                 </div>
               </div>
               {!isCollapsed && (
@@ -385,7 +381,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Logo Singkat Khusus Mobile */}
             <Link href="/" className="flex items-center gap-2 md:hidden">
-              <img src="/logoelectra.png" alt="Electra" className="w-6 h-6 object-contain" />
+              <Image src="/logoelectra.png" alt="Electra" width={24} height={24} className="w-6 h-6 object-contain" />
               <span className="font-bold text-sm tracking-tight text-white">ElectraTech</span>
             </Link>
           </div>

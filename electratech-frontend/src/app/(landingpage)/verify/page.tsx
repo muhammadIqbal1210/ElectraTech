@@ -20,7 +20,6 @@ import {
   AlertTriangle,
   Database,
   Camera,
-  QrCode,
 } from 'lucide-react';
 import QrScannerModal from '@/components/QrScannerModal';
 

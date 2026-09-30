@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { Pencil, ShieldCheck, Sprout, Truck, UserPlus, Users, X } from 'lucide-react';
+import { Pencil, ShieldCheck, Sprout, Truck, UserPlus, X } from 'lucide-react';
 import { apiRequest, Role } from '@/lib/api';
 
 type UserRow = {

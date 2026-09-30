@@ -2,12 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  CheckCircle2,
   Clock,
   MapPin,
   Package,
   RefreshCcw,
-  Route,
   Search,
   Thermometer,
   Truck,
@@ -168,6 +166,15 @@ export default function TrackingBenihProdusenPage() {
             </p>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleRefresh}
+          className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:border-slate-700 hover:text-white transition"
+        >
+          <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <span>Segarkan</span>
+        </button>
       </div>
 
       {message && <p className="text-sm font-semibold text-amber-300">{message}</p>}
