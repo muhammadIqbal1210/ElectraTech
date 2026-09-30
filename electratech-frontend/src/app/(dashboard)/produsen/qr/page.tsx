@@ -143,8 +143,9 @@ export default function QrDistribusiProdusenPage() {
   );
 
   const isReadyForQr = selectedBatch?.phase === 'SIAP_DISTRIBUSI';
-  const qrPayload = selectedBatch ? buildQrPayload(selectedBatch, logs, selectedShipments) : '';
-  const qrImageUrl = `${qrImageBaseUrl}?size=280x280&margin=12&data=${encodeURIComponent(qrPayload)}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smartfarm.electratech.id';
+  const qrVerificationUrl = selectedBatch ? `${origin}/verify?id=${encodeURIComponent(selectedBatch.id)}` : '';
+  const qrImageUrl = `${qrImageBaseUrl}?size=280x280&margin=12&data=${encodeURIComponent(qrVerificationUrl)}`;
 
   const handleDownload = async () => {
     if (!selectedBatch) return;
@@ -297,11 +298,12 @@ export default function QrDistribusiProdusenPage() {
                   </div>
 
                   <label className="mt-5 block space-y-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Isi QR</span>
-                    <textarea
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Tautan Verifikasi di QR</span>
+                    <input
+                      type="text"
                       readOnly
-                      value={isReadyForQr ? qrPayload : 'Batch belum masuk fase SIAP_DISTRIBUSI.'}
-                      className="min-h-48 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 font-mono text-xs leading-relaxed text-slate-300 outline-none"
+                      value={isReadyForQr ? qrVerificationUrl : 'Batch belum masuk fase SIAP_DISTRIBUSI.'}
+                      className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2.5 font-mono text-xs text-cyan-300 outline-none"
                     />
                   </label>
                 </div>

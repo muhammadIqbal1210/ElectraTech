@@ -42,6 +42,29 @@ export default function VerifyPage() {
     return () => clearInterval(slideTimer);
   }, [verifyImages.length]);
 
+  // Cek apakah halaman dibuka dengan query parameter ?id=... dari hasil scan QR kamera bawaan HP
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      let queryId = params.get('id');
+
+      // Cek juga fallback hash format misal #verify?id=...
+      if (!queryId && window.location.hash.includes('id=')) {
+        const hashQuery = window.location.hash.split('?')[1];
+        if (hashQuery) {
+          const hashParams = new URLSearchParams(hashQuery);
+          queryId = hashParams.get('id');
+        }
+      }
+
+      if (queryId) {
+        const cleanId = queryId.trim();
+        setSearchQuery(cleanId);
+        void triggerVerify(cleanId);
+      }
+    }
+  }, []);
+
   const handleCopyUrl = (url: string) => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(url);

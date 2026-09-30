@@ -58,26 +58,11 @@ export default function ShipmentQrModal({ open, shipment, onClose }: ShipmentQrM
   if (!open || !shipment) return null;
 
   // URL verifikasi publik untuk konsumen/mitra/agen
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const verificationUrl = `${origin}/#verify?id=${encodeURIComponent(shipment.receiptNumber)}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://smartfarm.electratech.id';
+  const verificationUrl = `${origin}/verify?id=${encodeURIComponent(shipment.receiptNumber)}`;
 
-  // Isi data QR yang komprehensif (dapat dibaca scanner biasa atau URL verifikasi)
-  const qrTextPayload = [
-    'ELECTRA TECH - RESI PENGIRIMAN',
-    `Nomor Resi: ${shipment.receiptNumber}`,
-    `Batch ID: ${shipment.batchId}`,
-    shipment.variety ? `Varietas: ${shipment.variety}` : null,
-    `Tujuan: ${shipment.destination}`,
-    `Jumlah Bibit: ${shipment.packageQuantity} bibit`,
-    `Status: ${shipment.status.replaceAll('_', ' ')}`,
-    shipment.courierName ? `Kurir: ${shipment.courierName}` : null,
-    `Tgl Dibuat: ${formatDate(shipment.createdAt || new Date().toISOString())}`,
-    `Verifikasi Publik: ${verificationUrl}`,
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  const qrImageUrl = `${QR_IMAGE_BASE_URL}?size=260x260&margin=12&data=${encodeURIComponent(qrTextPayload)}`;
+  // QR Code langsung berupa URL agar kamera bawaan HP / Google Lens langsung membuka browser
+  const qrImageUrl = `${QR_IMAGE_BASE_URL}?size=260x260&margin=12&data=${encodeURIComponent(verificationUrl)}`;
 
   const handleCopyResi = async () => {
     try {
@@ -263,10 +248,10 @@ export default function ShipmentQrModal({ open, shipment, onClose }: ShipmentQrM
           {/* Raw Payload Preview Accordion */}
           <div className="rounded-xl border border-slate-800/80 bg-[#05070e] p-3.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5">
-              Isi Payload Terenkode di QR
+              URL Verifikasi Terenkode di QR
             </span>
-            <pre className="text-[11px] font-mono text-slate-400 whitespace-pre-wrap leading-relaxed max-h-24 overflow-y-auto">
-              {qrTextPayload}
+            <pre className="text-[11px] font-mono text-cyan-400 break-all leading-relaxed">
+              {verificationUrl}
             </pre>
           </div>
         </div>
