@@ -7,12 +7,7 @@ import {
   Send,
   Sparkles,
   X,
-  MessageSquare,
-  ChevronDown,
   Loader2,
-  ShieldCheck,
-  Cpu,
-  HelpCircle,
   Minimize2,
   Maximize2,
   RotateCcw,
@@ -35,7 +30,13 @@ const SUGGESTED_QUESTIONS = [
 export default function PublicAiAgent() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      sender: 'agent',
+      text: 'Halo! Selamat datang di **Electra Tech**. Saya asisten virtual untuk membantu menjawab pertanyaan seputar layanan kami: **SmartLink IoT**, **TraceChain Blockchain**, dan sistem **Verifikasi QR Code**',
+      time: 'Baru saja',
+    },
+  ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
@@ -66,19 +67,6 @@ export default function PublicAiAgent() {
 
     window.addEventListener('open-electra-chat', handleOpenChat);
     return () => window.removeEventListener('open-electra-chat', handleOpenChat);
-  }, []);
-
-  // Pesan sambutan awal
-  useEffect(() => {
-    if (messages.length === 0) {
-      setMessages([
-        {
-          sender: 'agent',
-          text: 'Halo! Selamat datang di **Electra Tech**. Saya asisten virtual untuk membantu menjawab pertanyaan seputar layanan kami: **SmartLink IoT**, **TraceChain Blockchain**, dan sistem **Verifikasi QR Code**',
-          time: getCurrentTime(),
-        },
-      ]);
-    }
   }, []);
 
   const handleSend = async (queryText: string) => {
@@ -177,6 +165,14 @@ export default function PublicAiAgent() {
             </div>
 
             <div className="flex items-center gap-1 text-slate-300">
+              <button
+                type="button"
+                onClick={handleResetChat}
+                className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition"
+                title="Reset Percakapan"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </button>
               <button
                 type="button"
                 onClick={() => setIsMinimized(!isMinimized)}
@@ -355,7 +351,10 @@ export default function PublicAiAgent() {
           <>
             <Bot className="h-6 w-6 text-white" />
             <span className="absolute top-1 right-1 flex h-3 w-3">
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              <span className={`relative inline-flex rounded-full h-3 w-3 ${hasUnread ? 'bg-rose-500 animate-ping' : 'bg-emerald-500'}`}></span>
+              {hasUnread && (
+                <span className="absolute inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+              )}
             </span>
           </>
         )}

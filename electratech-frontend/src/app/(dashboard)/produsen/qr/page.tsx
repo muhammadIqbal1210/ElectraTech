@@ -58,36 +58,6 @@ function formatPhase(phase: string) {
   return phase.replaceAll('_', ' ');
 }
 
-function buildQrPayload(batch: BatchRow, logs: BatchLog[], shipments: ShipmentRow[]) {
-  const phaseHistory = logs.length > 0
-    ? logs
-        .slice()
-        .reverse()
-        .map((log, index) => `${index + 1}. ${formatPhase(log.from_phase || 'REGISTRASI')} -> ${formatPhase(log.to_phase)} (${formatDate(log.created_at)})`)
-        .join('; ')
-    : 'Belum ada mutasi fase.';
-
-  const shipmentHistory = shipments.length > 0
-    ? shipments
-        .map((shipment, index) => `${index + 1}. ${shipment.receiptNumber} | ${shipment.packageQuantity} bibit | ${shipment.destination} | ${shipment.status} | kurir: ${shipment.courierName || 'belum diterima'} | dibuat: ${formatDate(shipment.createdAt)}`)
-        .join('; ')
-    : 'Belum ada paket pengiriman.';
-
-  return [
-    'ELECTRA TECH TRACEABILITY',
-    `Batch: ${batch.id}`,
-    `Varietas: ${batch.variety}`,
-    `Generasi: ${batch.generation}`,
-    `Produsen: ${batch.producer_name}`,
-    `Jumlah awal: ${batch.quantity} bibit`,
-    `Tanggal daftar: ${formatDate(batch.created_at || batch.seeded_at)}`,
-    `Status kesehatan: ${batch.health_status}`,
-    `Fase saat QR dibuat: ${formatPhase(batch.phase)}`,
-    `Riwayat fase: ${phaseHistory}`,
-    `Distribusi: ${shipmentHistory}`,
-  ].join('\n');
-}
-
 export default function QrDistribusiProdusenPage() {
   const [batches, setBatches] = useState<BatchRow[]>([]);
   const [shipments, setShipments] = useState<ShipmentRow[]>([]);

@@ -55,6 +55,13 @@ function CustomUploadAdapterPlugin(editor: any) {
 export default function CKEditorWrapper({ value, onChange, placeholder }: CKEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const ckInstanceRef = useRef<any>(null);
+  const onChangeRef = useRef(onChange);
+  const initialValueRef = useRef(value);
+  const placeholderRef = useRef(placeholder);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     let isMounted = true;
@@ -86,7 +93,7 @@ export default function CKEditorWrapper({ value, onChange, placeholder }: CKEdit
         try {
           const editor = await (window as any).ClassicEditor.create(editorRef.current, {
             extraPlugins: [CustomUploadAdapterPlugin],
-            placeholder: placeholder || 'Ketikkan isi berita atau artikel di sini...',
+            placeholder: placeholderRef.current || 'Ketikkan isi berita atau artikel di sini...',
             toolbar: [
               'heading',
               '|',
@@ -104,13 +111,13 @@ export default function CKEditorWrapper({ value, onChange, placeholder }: CKEdit
           });
 
           ckInstanceRef.current = editor;
-          if (value) {
-            editor.setData(value);
+          if (initialValueRef.current) {
+            editor.setData(initialValueRef.current);
           }
 
           editor.model.document.on('change:data', () => {
             const data = editor.getData();
-            onChange(data);
+            onChangeRef.current(data);
           });
         } catch (err) {
           console.error('CKEditor initialization error:', err);

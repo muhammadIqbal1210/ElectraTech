@@ -3,7 +3,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { API_URL } from '@/lib/api';
 import {
   ShieldCheck,
@@ -35,6 +35,34 @@ export default function VerifyPage() {
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
+  const triggerVerify = useCallback(async (queryInput: string) => {
+    const query = queryInput.trim();
+    if (!query) {
+      setSearchError('Silakan masukkan ID Batch atau Nomor Resi untuk melacak produk.');
+      setVerifyResult(null);
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/verify/${encodeURIComponent(query)}`);
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.message || json.error || 'Produk tidak ditemukan dalam database ElectraTech.');
+      }
+
+      setVerifyResult(json.data);
+    } catch (err: any) {
+      setVerifyResult(null);
+      setSearchError(err.message || 'Gagal melakukan verifikasi.');
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
   useEffect(() => {
     const slideTimer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % verifyImages.length);
@@ -63,41 +91,13 @@ export default function VerifyPage() {
         void triggerVerify(cleanId);
       }
     }
-  }, []);
+  }, [triggerVerify]);
 
   const handleCopyUrl = (url: string) => {
     if (typeof window !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(url);
       setCopiedUrl(true);
       setTimeout(() => setCopiedUrl(false), 2000);
-    }
-  };
-
-  const triggerVerify = async (queryInput: string) => {
-    const query = queryInput.trim();
-    if (!query) {
-      setSearchError('Silakan masukkan ID Batch atau Nomor Resi untuk melacak produk.');
-      setVerifyResult(null);
-      return;
-    }
-
-    setIsSearching(true);
-    setSearchError(null);
-
-    try {
-      const res = await fetch(`${API_URL}/api/verify/${encodeURIComponent(query)}`);
-      const json = await res.json();
-
-      if (!res.ok || !json.ok) {
-        throw new Error(json.message || json.error || 'Produk tidak ditemukan dalam database ElectraTech.');
-      }
-
-      setVerifyResult(json.data);
-    } catch (err: any) {
-      setVerifyResult(null);
-      setSearchError(err.message || 'Gagal melakukan verifikasi database.');
-    } finally {
-      setIsSearching(false);
     }
   };
 
