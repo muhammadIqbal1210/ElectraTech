@@ -184,10 +184,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
           {/* LEFT */}
           <div>
-            <h1 className="text-5xl lg:text-4xl font-bold leading-tight">
+            <h1 className="text-4xl lg:text-4xl font-bold leading-tight">
               Building More Transparent
             </h1>
-            <h1 className="typing-text text-5xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <h1 className="typing-text text-4xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
               Products of the Future
             </h1>
 

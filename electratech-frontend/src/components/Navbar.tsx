@@ -95,7 +95,7 @@ export default function Navbar() {
             href="/verify"
             className="text-slate-300 hover:text-cyan-400 transition"
           >
-            Tracking
+            Verify
           </Link>
 
           <Link
@@ -143,7 +143,7 @@ export default function Navbar() {
           <div className="flex flex-col p-6 gap-5">
             <Link href="#layanan">Layanan</Link>
             <Link href="#fitur">Fitur</Link>
-            <Link href="/verify">Tracking</Link>
+            <Link href="/verify">Verify</Link>
             <Link href="/blog">Blog</Link>
             <Link href="/kontak">Kontak</Link>
 

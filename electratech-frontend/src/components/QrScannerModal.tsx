@@ -194,7 +194,7 @@ export default function QrScannerModal({ isOpen, onClose, onScanSuccess }: QrSca
               setActiveTab('camera');
               setErrorMsg(null);
             }}
-            className={`flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition ${
+            className={`flex items-center justify-center gap-2 py-2 text-xs font-medium rounded-lg transition ${
               activeTab === 'camera'
                 ? 'bg-slate-800 text-cyan-400 shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
