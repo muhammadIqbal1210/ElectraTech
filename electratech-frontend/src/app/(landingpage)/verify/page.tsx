@@ -170,11 +170,11 @@ export default function VerifyPage() {
             <div className="absolute -top-20 -left-20 w-60 h-60" />
             <div className="absolute -bottom-20 -right-20 w-60 h-60" />
 
-            <div className="relative w-full h-[260px] sm:h-[380px] md:h-[480px] lg:h-[540px] overflow-hidden flex items-center justify-center">
+            <div className="relative w-full h-[460px] xs:h-[440px] sm:h-[440px] md:h-[480px] lg:h-[540px] overflow-hidden flex items-center justify-center">
               {verifyImages.map((src, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 p-2 sm:p-3 flex items-center justify-center transition-all duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+                  className={`absolute inset-0 p-0 sm:p-2 flex items-center justify-center transition-all duration-700 ease-in-out ${index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
                     }`}
                 >
                   <Image
@@ -183,7 +183,7 @@ export default function VerifyPage() {
                     fill
                     loading={index === 0 ? 'eager' : 'lazy'}
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-contain rounded-lg p-2 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
+                    className="object-contain rounded-lg p-0.5 sm:p-2 drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
                   />
                 </div>
               ))}
