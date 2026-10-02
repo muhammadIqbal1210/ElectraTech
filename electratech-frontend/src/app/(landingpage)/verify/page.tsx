@@ -25,7 +25,7 @@ import QrScannerModal from '@/components/QrScannerModal';
 
 export default function VerifyPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const verifyImages = ['/verify1.png', '/verify2.png', '/verify3.png'];
+  const verifyImages = ['/verify1.webp', '/verify2.webp', '/verify3.webp', '/verify4.webp'];
 
   // Database verification state
   const [searchQuery, setSearchQuery] = useState('');
@@ -155,9 +155,6 @@ export default function VerifyPage() {
       <main className="pt-24 sm:pt-28 md:pt-32 pb-16 sm:pb-24 max-w-7xl mx-auto px-4 sm:px-6">
         {/* Page Title & Subtitle */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <span className="text-cyan-400 uppercase text-[11px] sm:text-xs tracking-widest font-medium block mb-2">
-            Blockchain & Supply Chain Verification
-          </span>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 sm:mb-4 text-white">
             Verifikasi Keaslian Produk
           </h1>
@@ -170,10 +167,10 @@ export default function VerifyPage() {
           {/* KIRI: Image Slider (Slide demi slide verify 1, 2, 3) */}
           <div className="relative overflow-hidden group w-full">
             {/* Radial glow background */}
-            <div className="absolute -top-20 -left-20 w-60 h-60 blur-3xl bg-cyan-500/10" />
-            <div className="absolute -bottom-20 -right-20 w-60 h-60 blur-3xl bg-blue-500/10" />
+            <div className="absolute -top-20 -left-20 w-60 h-60" />
+            <div className="absolute -bottom-20 -right-20 w-60 h-60" />
 
-            <div className="relative w-full h-[260px] sm:h-[380px] md:h-[480px] lg:h-[540px] overflow-hidden flex items-center justify-center rounded-2xl bg-slate-950/40 border border-slate-800/60">
+            <div className="relative w-full h-[260px] sm:h-[380px] md:h-[480px] lg:h-[540px] overflow-hidden flex items-center justify-center">
               {verifyImages.map((src, index) => (
                 <div
                   key={index}
