@@ -34,11 +34,11 @@ const members = [
     role: "Direktur Utama",
     image: "/team_ari.jpeg"
   },
-  {
-    name: "Dr. Kiki Yulianto ",
-    role: "Komisaris Utama",
-    image: "/team_kiki.jpeg"
-  },
+  // {
+  //   name: "Dr. Kiki Yulianto ",
+  //   role: "Komisaris Utama",
+  //   image: "/team_kiki.jpeg"
+  // },
   {
     name: "Muhammad Iqbal",
     role: "CTO",
@@ -549,7 +549,7 @@ export default function LandingPage() {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-16">
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
             {members.map((members) => (
               <div key={members.name} className='flex flex-col items-center'>
                 <Image
