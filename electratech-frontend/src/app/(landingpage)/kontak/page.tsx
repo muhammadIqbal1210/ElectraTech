@@ -58,8 +58,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-200 text-sm">Email Resmi</h3>
-                  <p className="text-slate-400 text-sm mt-1">support@electratech.id</p>
-                  <p className="text-slate-400 text-sm">info@electratech.id</p>
+                  <p className="text-slate-400 text-sm mt-1">electratechindonesia@gmail.com</p>
                 </div>
               </div>
 
@@ -69,8 +68,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-slate-200 text-sm">Telepon & WhatsApp</h3>
-                  <p className="text-slate-400 text-sm mt-1">+62 812-3456-7890</p>
-                  <p className="text-slate-400 text-sm">(022) 7564-108</p>
+                  <p className="text-slate-400 text-sm mt-1">+62 853 4810 5633</p>
                 </div>
               </div>
 
