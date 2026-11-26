@@ -40,6 +40,26 @@ export async function fetchPublicBlogs<T = PublicBlogPost[]>(path: string): Prom
   }
 }
 
+/**
+ * Ambil satu artikel blog. Membedakan "tidak ada" (API 404) dari "API error",
+ * supaya artikel yang benar-benar tidak ada menghasilkan HTTP 404, sedangkan
+ * gangguan API tidak membuat artikel valid ikut ter-404.
+ */
+export async function fetchBlogBySlug(slug: string): Promise<PublicBlogPost | 'not-found' | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/blogs/${encodeURIComponent(slug)}`, {
+      next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.status === 404) return 'not-found';
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.ok && json.data ? (json.data as PublicBlogPost) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Strip HTML/Markdown into a plain-text snippet for meta descriptions. */
 export function toExcerpt(content: string | undefined, max = 160): string {
   if (!content) return '';

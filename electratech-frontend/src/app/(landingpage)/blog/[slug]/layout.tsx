@@ -1,13 +1,17 @@
 import type { Metadata } from 'next';
-import { ORG_ID, SITE_NAME, SITE_URL, absoluteUrl, fetchPublicBlogs, toExcerpt, type PublicBlogPost } from '@/lib/site';
+import { notFound } from 'next/navigation';
+import { ORG_ID, SITE_NAME, SITE_URL, absoluteUrl, fetchBlogBySlug, toExcerpt } from '@/lib/site';
 
 type Props = {
   params: Promise<{ slug: string }>;
   children: React.ReactNode;
 };
 
-function getBlog(slug: string) {
-  return fetchPublicBlogs<PublicBlogPost>(`/api/blogs/${encodeURIComponent(slug)}`);
+/** null = API tidak bisa dihubungi (halaman client tetap mencoba memuat). */
+async function getBlog(slug: string) {
+  const result = await fetchBlogBySlug(slug);
+  if (result === 'not-found') notFound();
+  return result;
 }
 
 export async function generateMetadata({ params }: Omit<Props, 'children'>): Promise<Metadata> {
@@ -16,14 +20,14 @@ export async function generateMetadata({ params }: Omit<Props, 'children'>): Pro
   const canonical = `/blog/${encodeURIComponent(slug)}`;
 
   if (!blog) {
-    return { title: 'Artikel tidak ditemukan', robots: { index: false, follow: true }, alternates: { canonical } };
+    return { title: { absolute: `Berita | ${SITE_NAME}` }, alternates: { canonical } };
   }
 
   const description = toExcerpt(blog.content) || `${blog.title} – ${SITE_NAME}`;
   const image = absoluteUrl(blog.thumbnail);
 
   return {
-    title: blog.title,
+    title: { absolute: `${blog.title} | ${SITE_NAME}` },
     description,
     alternates: { canonical },
     authors: blog.author_name ? [{ name: blog.author_name }] : undefined,
