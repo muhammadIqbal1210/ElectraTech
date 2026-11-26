@@ -186,9 +186,9 @@ export default function LandingPage() {
           <div>
             <h1 className="text-4xl lg:text-4xl font-bold leading-tight">
               Building More Transparent
-            </h1>
-            <h1 className="typing-text text-4xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              Products of the Future
+              <span className="typing-text text-4xl lg:text-4xl font-bold block bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                Products of the Future
+              </span>
             </h1>
 
             <p className="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed">
